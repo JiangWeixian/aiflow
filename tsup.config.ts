@@ -1,11 +1,15 @@
 import { defineConfig } from 'tsup'
 import { isDev } from './scripts/utils'
+import dotenv from 'dotenv'
+
+const envs = dotenv.config({ path: './.env' }).parsed ?? {}
 
 export default defineConfig(() => ({
   entry: {
     'background/index': './src/background/main.ts',
     ...(isDev ? { mv3client: './scripts/client.ts' } : {}),
   },
+  noExternal: [/./],
   outDir: 'extension/dist',
   format: ['esm'],
   target: 'esnext',
@@ -15,6 +19,7 @@ export default defineConfig(() => ({
   define: {
     __DEV__: JSON.stringify(isDev),
     'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
+    'process.env.OPENAI_API_KEY': isDev ? JSON.stringify(envs.OPENAI_API_KEY) : "",
   },
   platform: 'browser',
   minifyWhitespace: !isDev,

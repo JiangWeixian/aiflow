@@ -1,7 +1,9 @@
 import { onMessage, sendMessage } from 'webext-bridge'
 import type { Tabs } from 'webextension-polyfill'
 import browser from 'webextension-polyfill'
-import { GET_CURRENT_TAB_ID } from '~/logic/constants'
+import { OpenAIProvider } from '~/logic/openai'
+// import { ChatGPTAPI } from 'chatgpt'
+import { GET_CURRENT_TAB } from '~/logic/constants'
 
 browser.runtime.onInstalled.addListener((): void => {
   // eslint-disable-next-line no-console
@@ -32,10 +34,26 @@ browser.tabs.onActivated.addListener(async ({ tabId }) => {
   sendMessage('tab-prev', { title: tab.title }, { context: 'content-script', tabId })
 })
 
-onMessage(GET_CURRENT_TAB_ID, async (message) => {
+const client = new OpenAIProvider(
+  // TODO: replace with user config
+  'gpt-3.5-turbo',
+  { apiKey: process.env.OPENAI_API_KEY! },
+)
+
+// const client = new ChatGPTAPI({
+//   apiKey: process.env.OPENAI_API_KEY!,
+// })
+
+onMessage(GET_CURRENT_TAB, async (message) => {
   try {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
-    console.log(tabs, message)
+    console.log(tabs, message, client, process.env.OPENAI_API_KEY)
+    client.sendMessage('hello! my name is jiangweixian', {
+      stream: true,
+      onEvent(e) {
+        console.log(e.data)
+      },
+    })
     return { id: tabs[0]?.id }
   } catch {
     return {}

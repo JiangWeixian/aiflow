@@ -3,7 +3,7 @@ import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { Command } from 'cmdk'
 import { onMessage, sendMessage } from 'webext-bridge'
-import { GET_CURRENT_TAB_ID } from '~/logic/constants'
+import { GET_CURRENT_TAB } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 
 // TODO: use theme perfer query
@@ -27,7 +27,7 @@ export function CMDK() {
       if (e.key === 'k' && e.metaKey) {
         setOpen(open => !open)
         const value = getSearchInputValue()
-        sendMessage(GET_CURRENT_TAB_ID, { value }, 'background')
+        sendMessage(GET_CURRENT_TAB, { value }, 'background')
           .then(res => {
             console.log(res)
           })
