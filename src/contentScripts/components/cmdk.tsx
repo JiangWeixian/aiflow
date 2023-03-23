@@ -19,7 +19,7 @@ export function CMDK() {
 
   useEffect(() => {
     inputRef?.current?.focus()
-  }, [])
+  }, [inputRef])
 
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
@@ -27,10 +27,11 @@ export function CMDK() {
       if (e.key === 'k' && e.metaKey) {
         setOpen(open => !open)
         const value = getSearchInputValue()
-        sendMessage(GET_CURRENT_TAB, { value }, 'background')
-          .then(res => {
-            console.log(res)
-          })
+        // TODO: ask-chatgpt
+        // sendMessage(GET_CURRENT_TAB, { value }, 'background')
+        //   .then(res => {
+        //     console.log(res)
+        //   })
       }
     }
 
@@ -44,16 +45,17 @@ export function CMDK() {
         <RadixDialog.Portal container={containerRef.current}>
           <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
           <RadixDialog.Content cmdk-dialog="" className="z-50">
-            <Command value={value} onValueChange={v => setValue(v)}>
+            <Command value={value} onValueChange={v => setValue(v)} loop={true}>
               <div cmdk-raycast-top-shine="" />
-              <Command.Input ref={inputRef} autoFocus={true} placeholder="Search for apps and commands..." />
+              {/* autoFocus not working, use autofocus instead  */}
+              <Command.Input ref={inputRef} autofocus={true} autoFocus={true} placeholder="Search for apps and commands..." />
               <hr cmdk-raycast-loader="" />
               <Command.List ref={listRef}>
                 <Command.Empty>No results found.</Command.Empty>
                 <Command.Group heading="Commands">
-                  <Item isCommand={true} value="Import Extension">
-                    <HammerIcon />
-                    Import Extension
+                  <Item isCommand={true} value="Ask ChatGPT">
+                    <i className="gg-edit-mask" />
+                    Ask ChatGPT
                   </Item>
                   <Item isCommand={true} value="Manage Extensions">
                     <HammerIcon />
