@@ -5,6 +5,7 @@ import { Command } from 'cmdk'
 import { onMessage, sendMessage } from 'webext-bridge'
 import { GET_CURRENT_TAB } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
+import { MajesticonsTranslate } from '~/components/icons/translate'
 
 // TODO: use theme perfer query
 const theme = 'dark'
@@ -45,7 +46,7 @@ export function CMDK() {
         <RadixDialog.Portal container={containerRef.current}>
           <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
           <RadixDialog.Content cmdk-dialog="" className="z-50">
-            <Command value={value} onValueChange={v => setValue(v)} loop={true}>
+            <Command value={value} onValueChange={v => setValue(v)} loop={true} className="shadow-lg">
               <div cmdk-raycast-top-shine="" />
               {/* autoFocus not working, use autofocus instead  */}
               <Command.Input ref={inputRef} autofocus={true} autoFocus={true} placeholder="Search for apps and commands..." />
@@ -53,22 +54,29 @@ export function CMDK() {
               <Command.List ref={listRef}>
                 <Command.Empty>No results found.</Command.Empty>
                 <Command.Group heading="Commands">
+                  <Item isCommand={true} value="Create Workflow">
+                    <i className="gg-add/0.8 text-mayumi-gray-1200" />
+                    Create workflow
+                  </Item>
                   <Item isCommand={true} value="Ask ChatGPT">
-                    <i className="gg-edit-mask" />
+                    <i className="gg-girl/0.8 text-mayumi-gray-1200" />
                     Ask ChatGPT
                   </Item>
-                  <Item isCommand={true} value="Manage Extensions">
-                    <HammerIcon />
-                    Manage Extensions
+                  <Item isCommand={true} value="Transplate full page">
+                    <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
+                    Tranasplate Page
+                  </Item>
+                  <Item isCommand={true} value="Transplate with placeholder">
+                    <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
+                    Tranasplate with `...`
                   </Item>
                 </Command.Group>
               </Command.List>
-
-              <div cmdk-raycast-footer="">
-                {theme === 'dark' ? <RaycastDarkIcon /> : <RaycastLightIcon />}
+              <div cmdk-raycast-footer="" className="justify-end">
+                {/* TODO: replace with brand icon */}
+                {/* {theme === 'dark' ? <RaycastDarkIcon /> : <RaycastLightIcon />} */}
 
                 <button cmdk-raycast-open-trigger="">
-                  Open Application
                   <kbd>↵</kbd>
                 </button>
 
