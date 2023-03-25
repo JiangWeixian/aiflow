@@ -1,7 +1,7 @@
 // refs: https://github.com/wong2/chatgpt-google-extension/blob/main/src/background/fetch-sse.ts
 // refs: https://github.com/transitive-bullshit/chatgpt-api/blob/main/src/chatgpt-api.ts
 import { fetchSSE } from './fetch-sse'
-import type { ChatGPTAPIOptions, ChatMessage, Provider, SendMessageOptions, openai } from './types'
+import type { ChatGPTAPIOptions, ChatMessage, Provider, SendMessageOptions, openai, Event } from './types'
 import { v4 as uuidv4 } from 'uuid'
 
 const USER_LABEL_DEFAULT = 'User'
@@ -133,53 +133,56 @@ export class OpenAIProvider implements Provider {
       // parentMessageId: messageId,
       text: '',
     }
-    await fetchSSE('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      signal: params.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
-      },
-      body: JSON.stringify({
-        ...this._completionParams,
-        messages,
-        stream: true,
-        max_tokens: 2048,
-      }),
-      onMessage(message) {
-        console.debug('sse message', message)
-        if (message === '[DONE]') {
-          params.onEvent({ type: 'done' })
-          return
-        }
+    // eslint-disable-next-line no-async-promise-executor
+    return new Promise<Event>(async (resolve, reject) => {
+      await fetchSSE('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        signal: params.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.token}`,
+        },
+        body: JSON.stringify({
+          ...this._completionParams,
+          messages,
+          stream: true,
+          max_tokens: 2048,
+        }),
+        onMessage(message) {
+          console.debug('sse message', message)
+          if (message === '[DONE]') {
+            params.onEvent({ type: 'done' })
+            resolve({ type: 'answer', data: result })
+            return
+          }
 
-        try {
-          const response: openai.CreateChatCompletionDeltaResponse
+          try {
+            const response: openai.CreateChatCompletionDeltaResponse
             = JSON.parse(message)
 
-          if (response.id) {
-            result.id = response.id
-          }
-
-          if (response?.choices?.length) {
-            const delta = response.choices[0].delta
-            result.delta = delta.content
-            if (delta?.content) {
-              result.text += delta.content
-            }
-            result.detail = response
-
-            if (delta.role) {
-              result.role = delta.role
+            if (response.id) {
+              result.id = response.id
             }
 
-            params.onEvent?.({ type: 'answer', data: result })
+            if (response?.choices?.length) {
+              const delta = response.choices[0].delta
+              result.delta = delta.content
+              if (delta?.content) {
+                result.text += delta.content
+              }
+              result.detail = response
+
+              if (delta.role) {
+                result.role = delta.role
+              }
+
+              params.onEvent?.({ type: 'answer', data: result })
+            }
+          } catch (err) {
+            console.error(err)
           }
-        } catch (err) {
-          console.error(err)
-        }
-      },
+        },
+      })
     })
-    return {}
   }
 }

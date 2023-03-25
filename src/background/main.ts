@@ -2,7 +2,6 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import type { Tabs } from 'webextension-polyfill'
 import browser from 'webextension-polyfill'
 import { OpenAIProvider } from '~/logic/openai'
-// import { ChatGPTAPI } from 'chatgpt'
 import { GET_CURRENT_TAB } from '~/logic/constants'
 
 browser.runtime.onInstalled.addListener((): void => {
@@ -40,10 +39,6 @@ const client = new OpenAIProvider(
   { apiKey: process.env.OPENAI_API_KEY! },
 )
 
-// const client = new ChatGPTAPI({
-//   apiKey: process.env.OPENAI_API_KEY!,
-// })
-
 onMessage(GET_CURRENT_TAB, async (message) => {
   try {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
@@ -60,15 +55,37 @@ onMessage(GET_CURRENT_TAB, async (message) => {
   }
 })
 
-onMessage('as-chatgpt', async () => {
+onMessage('ask-chatgpt', async (message) => {
   try {
-    const tab = await browser.tabs.get(previousTabId)
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true })
+    console.log(tabs, message, client, process.env.OPENAI_API_KEY)
+    const resp = await client.sendMessage('hello! my name is jiangweixian', {
+      stream: true,
+      onEvent(e) {
+        console.log(e.data)
+      },
+    })
     return {
-      title: tab?.id,
+      // promise message is safe json-like value
+      message: resp as any,
     }
   } catch {
     return {
-      title: undefined,
+      message: undefined,
+    }
+  }
+})
+
+// test for webext-bridge is work
+onMessage('test', async (data) => {
+  try {
+    sendMessage('test', { value: data.data.value }, 'content-script')
+    return {
+      message: data.data.value,
+    }
+  } catch {
+    return {
+      message: undefined,
     }
   }
 })

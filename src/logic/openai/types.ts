@@ -21,7 +21,7 @@ export interface GenerateAnswerParams {
 }
 
 export interface Provider {
-  sendMessage(text: string, params: SendMessageOptions): Promise<{ cleanup?: () => void }>
+  sendMessage(text: string, params: SendMessageOptions): Promise<Event>
 }
 
 export interface ChatGPTAPIOptions {

@@ -3,7 +3,9 @@ import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { Command } from 'cmdk'
 import { onMessage, sendMessage } from 'webext-bridge'
-import { GET_CURRENT_TAB } from '~/logic/constants'
+
+import { useBearStore } from '~/logic/store'
+import { ASK_CHATGPT, GET_CURRENT_TAB } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 
@@ -12,11 +14,32 @@ const theme = 'dark'
 
 export function CMDK() {
   // const { resolvedTheme: theme } = useTheme()
+  // which command
   const [value, setValue] = React.useState('linear')
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = React.useRef<HTMLInputElement | null>(null)
   const listRef = React.useRef(null)
+  const { increase, chatresp, clear } = useBearStore()
+
+  // trigger on item active(navigate)
+  const handleValueChange = (v: string) => {
+    console.log(v)
+    setValue(v)
+  }
+
+  // trigger on item select
+  const handleValueSelect = async (value: string) => {
+    console.log('handleValueSelect', value)
+    if (value === ASK_CHATGPT) {
+      const searchValue = getSearchInputValue()
+      increase(1)
+      const data = await sendMessage('ask-chatgpt', { value: searchValue }, 'background')
+      console.log(value, data)
+      chatresp(data.message)
+    }
+    // sendMessage('test', { value }, 'background')
+  }
 
   useEffect(() => {
     inputRef?.current?.focus()
@@ -46,7 +69,7 @@ export function CMDK() {
         <RadixDialog.Portal container={containerRef.current}>
           <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
           <RadixDialog.Content cmdk-dialog="" className="z-50">
-            <Command value={value} onValueChange={v => setValue(v)} loop={true} className="shadow-lg">
+            <Command value={value} onValueChange={handleValueChange} loop={true} className="shadow-lg">
               <div cmdk-raycast-top-shine="" />
               {/* autoFocus not working, use autofocus instead  */}
               <Command.Input ref={inputRef} autofocus={true} autoFocus={true} placeholder="Search for apps and commands..." />
@@ -58,7 +81,7 @@ export function CMDK() {
                     <i className="gg-add/0.8 text-mayumi-gray-1200" />
                     Create workflow
                   </Item>
-                  <Item isCommand={true} value="Ask ChatGPT">
+                  <Item isCommand={true} onSelect={handleValueSelect} value={ASK_CHATGPT}>
                     <i className="gg-girl/0.8 text-mayumi-gray-1200" />
                     Ask ChatGPT
                   </Item>
@@ -97,13 +120,15 @@ function Item({
   children,
   value,
   isCommand = false,
+  onSelect,
 }: {
   children: React.ReactNode
   value: string
   isCommand?: boolean
+  onSelect?: (value: string) => void
 }) {
   return (
-    <Command.Item value={value} onSelect={() => {}}>
+    <Command.Item value={value} onSelect={onSelect}>
       {children}
       <span cmdk-raycast-meta="">{isCommand ? 'Command' : 'Application'}</span>
     </Command.Item>

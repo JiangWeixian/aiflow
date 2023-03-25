@@ -8,6 +8,7 @@ specifiers:
   '@radix-ui/colors': ^0.1.8
   '@radix-ui/react-dialog': ^1.0.3
   '@radix-ui/react-popover': ^1.0.5
+  '@react-spring/web': ^9.7.1
   '@rollup/plugin-replace': ^5.0.2
   '@types/document-ready': ^2.0.0
   '@types/dotenv': ^8.2.0
@@ -40,6 +41,7 @@ specifiers:
   postcss: ^8.4.21
   react: ^18.2.0
   react-dom: ^18.2.0
+  react-use-measure: ^2.1.1
   rimraf: ^3.0.2
   sass: ^1.59.3
   tailwind-cssgg: ^0.0.2
@@ -53,11 +55,13 @@ specifiers:
   web-ext: ^6.3.0
   webext-bridge: ^4.1.1
   webextension-polyfill: ^0.8.0
+  zustand: ^4.3.6
 
 dependencies:
   '@dqbd/tiktoken': 1.0.2
   '@radix-ui/react-dialog': 1.0.3_zula6vjvt3wdocc4mwcxqa6nzi
   '@radix-ui/react-popover': 1.0.5_zula6vjvt3wdocc4mwcxqa6nzi
+  '@react-spring/web': 9.7.1_biqbaboplfbrettd7655fr4n2y
   cmdk: 0.2.0_zula6vjvt3wdocc4mwcxqa6nzi
   document-ready: 2.0.2
   eventsource-parser: 0.1.0
@@ -65,6 +69,7 @@ dependencies:
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   uuid: 9.0.0
+  zustand: 4.3.6_react@18.2.0
 
 devDependencies:
   '@aiou/eslint-config': 0.7.8_rcjd7piubcbw55ejomgq65yqim
@@ -97,6 +102,7 @@ devDependencies:
   lint-staged: 11.2.6
   npm-run-all: 4.1.5
   postcss: 8.4.21
+  react-use-measure: 2.1.1_biqbaboplfbrettd7655fr4n2y
   rimraf: 3.0.2
   sass: 1.59.3
   tailwind-cssgg: 0.0.2_tailwindcss@3.2.7
@@ -1521,6 +1527,60 @@ packages:
     resolution: {integrity: sha512-d0O68AYy/9oeEy1DdC07bz1/ZXX+DqCskRd3i4JzLSTXwefzaepQrKjXC7aNM8lTHjFLDO0pDgaEiQ7jEk+HVg==}
     dependencies:
       '@babel/runtime': 7.21.0
+    dev: false
+
+  /@react-spring/animated/9.7.1_react@18.2.0:
+    resolution: {integrity: sha512-EX5KAD9y7sD43TnLeTNG1MgUVpuRO1YaSJRPawHNRgUWYfILge3s85anny4S4eTJGpdp5OoFV2kx9fsfeo0qsw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@react-spring/shared': 9.7.1_react@18.2.0
+      '@react-spring/types': 9.7.1
+      react: 18.2.0
+    dev: false
+
+  /@react-spring/core/9.7.1_react@18.2.0:
+    resolution: {integrity: sha512-8K9/FaRn5VvMa24mbwYxwkALnAAyMRdmQXrARZLcBW2vxLJ6uw9Cy3d06Z8M12kEqF2bDlccaCSDsn2bSz+Q4A==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@react-spring/animated': 9.7.1_react@18.2.0
+      '@react-spring/rafz': 9.7.1
+      '@react-spring/shared': 9.7.1_react@18.2.0
+      '@react-spring/types': 9.7.1
+      react: 18.2.0
+    dev: false
+
+  /@react-spring/rafz/9.7.1:
+    resolution: {integrity: sha512-JSsrRfbEJvuE3w/uvU3mCTuWwpQcBXkwoW14lBgzK9XJhuxmscGo59AgJUpFkGOiGAVXFBGB+nEXtSinFsopgw==}
+    dev: false
+
+  /@react-spring/shared/9.7.1_react@18.2.0:
+    resolution: {integrity: sha512-R2kZ+VOO6IBeIAYTIA3C1XZ0ZVg/dDP5FKtWaY8k5akMer9iqf5H9BU0jyt3Qtxn0qQY7whQdf6MTcWtKeaawg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@react-spring/rafz': 9.7.1
+      '@react-spring/types': 9.7.1
+      react: 18.2.0
+    dev: false
+
+  /@react-spring/types/9.7.1:
+    resolution: {integrity: sha512-yBcyfKUeZv9wf/ZFrQszvhSPuDx6Py6yMJzpMnS+zxcZmhXPeOCKZSHwqrUz1WxvuRckUhlgb7eNI/x5e1e8CA==}
+    dev: false
+
+  /@react-spring/web/9.7.1_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-6uUE5MyKqdrJnIJqlDN/AXf3i8PjOQzUuT26nkpsYxUGOk7c+vZVPcfrExLSoKzTb9kF0i66DcqzO5fXz/Z1AA==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@react-spring/animated': 9.7.1_react@18.2.0
+      '@react-spring/core': 9.7.1_react@18.2.0
+      '@react-spring/shared': 9.7.1_react@18.2.0
+      '@react-spring/types': 9.7.1
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     dev: false
 
   /@rollup/plugin-replace/5.0.2:
@@ -2971,6 +3031,10 @@ packages:
 
   /debounce/1.2.0:
     resolution: {integrity: sha512-mYtLl1xfZLi1m4RtQYlZgJUNQjl4ZxVnHzIR8nLLgi4q1YT8o/WM+MK/f8yfcc9s5Ir5zRaPZyZU6xs1Syoocg==}
+    dev: true
+
+  /debounce/1.2.1:
+    resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
     dev: true
 
   /debug/2.6.9:
@@ -6848,7 +6912,6 @@ packages:
       loose-envify: 1.4.0
       react: 18.2.0
       scheduler: 0.23.0
-    dev: false
 
   /react-is/16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -6930,12 +6993,22 @@ packages:
       tslib: 2.5.0
     dev: false
 
+  /react-use-measure/2.1.1_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-nocZhN26cproIiIduswYpV5y5lQpSQS1y/4KuvUCjSKmw7ZWIS/+g3aFnX3WdBkyuGUtTLif3UTqnLLhbDoQig==}
+    peerDependencies:
+      react: '>=16.13'
+      react-dom: '>=16.13'
+    dependencies:
+      debounce: 1.2.1
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: true
+
   /react/18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
-    dev: false
 
   /read-cache/1.0.0:
     resolution: {integrity: sha512-Owdv/Ft7IjOgm/i0xvNDZ1LrRANRfew4b2prF3OWMQLxLfu3bS8FVhCsrSCMK4lR56Y9ya+AThoTpDCTxCmpRA==}
@@ -7312,7 +7385,6 @@ packages:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
     dependencies:
       loose-envify: 1.4.0
-    dev: false
 
   /semver-compare/1.0.0:
     resolution: {integrity: sha512-YM3/ITh2MJ5MtzaM429anh+x2jiLVjqILF4m4oyQB18W7Ggea7BfqdH/wGMK7dDiMghv/6WG7znWMwUDzJiXow==}
@@ -8295,6 +8367,14 @@ packages:
       tslib: 2.5.0
     dev: false
 
+  /use-sync-external-store/1.2.0_react@18.2.0:
+    resolution: {integrity: sha512-eEgnFxGQ1Ife9bzYs6VLi8/4X6CObHMw9Qr9tPY43iKwsPw8xE8+EFsf/2cFZ5S3esXgpWgtSCtLNS41F+sKPA==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+    dev: false
+
   /util-deprecate/1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
     dev: true
@@ -8757,3 +8837,19 @@ packages:
       compress-commons: 2.1.1
       readable-stream: 3.6.2
     dev: true
+
+  /zustand/4.3.6_react@18.2.0:
+    resolution: {integrity: sha512-6J5zDxjxLE+yukC2XZWf/IyWVKnXT9b9HUv09VJ/bwGCpKNcaTqp7Ws28Xr8jnbvnZcdRaidztAPsXFBIqufiw==}
+    engines: {node: '>=12.7.0'}
+    peerDependencies:
+      immer: '>=9.0'
+      react: '>=16.8'
+    peerDependenciesMeta:
+      immer:
+        optional: true
+      react:
+        optional: true
+    dependencies:
+      react: 18.2.0
+      use-sync-external-store: 1.2.0_react@18.2.0
+    dev: false
