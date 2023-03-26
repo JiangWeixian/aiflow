@@ -113,7 +113,7 @@ export function CMDK() {
       <RadixDialog.Root open={open}>
         <RadixDialog.Portal container={containerRef.current}>
           <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
-          <RadixDialog.Content cmdk-dialog="" className="z-50">
+          <RadixDialog.Content asChild={true} cmdk-dialog="" className="z-50">
             <Command
               onKeyDown={(e: React.KeyboardEvent) => {
                 if (e.key === 'Enter') {
@@ -136,6 +136,7 @@ export function CMDK() {
               loop={true}
               className="shadow-lg"
             >
+              <div className="absolute inset-0 rounded-xl bg-mayumi-gray-200" style={{ zIndex: -1 }} />
               <div cmdk-raycast-top-shine="" />
               <div className="flex items-center justify-start gap-2 px-3 pt-1">
                 {pages.map(p => (
@@ -310,6 +311,7 @@ function SubCommand({
       <Popover.Content
         side="top"
         align="end"
+        asChild={true}
         className="raycast-submenu outline-none"
         sideOffset={16}
         alignOffset={0}

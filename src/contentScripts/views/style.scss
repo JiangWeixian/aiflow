@@ -193,7 +193,7 @@ a {
           var(--gray6) 70%,
           var(--gray6) 100%
         );
-        z-index: -1;
+        z-index: -2;
         position: absolute;
         border-radius: 12px;
         top: -1px;
@@ -488,8 +488,7 @@ a {
     position: fixed;
     left: 50%;
     top: 50%;
-    top: var(--page-top);
-    transform: translateX(-50%) translateY(50%);
+    transform: translateX(-50%) translateY(-50%);
 
     [cmdk] {
       width: 640px;
