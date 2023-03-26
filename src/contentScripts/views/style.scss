@@ -176,6 +176,7 @@ a {
     box-shadow: var(--cmdk-shadow);
     border: 1px solid var(--gray6);
     position: relative;
+    transition: transform 0.1s ease;
 
     .dark & {
       background: var(--gray2);

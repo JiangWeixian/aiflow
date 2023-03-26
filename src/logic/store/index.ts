@@ -1,13 +1,15 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { compact } from 'lodash-es'
-import type { Event } from '~/logic/openai/types'
+
+import type { ChatMessage } from '~/logic/openai/types'
+import { getConvention } from '~/logic/storage'
 
 interface BearState {
   bears: number
-  messages: Event[]
+  conventions: ChatMessage[]
   increase: (by: number) => void
-  chatresp: (msg: Event) => void
+  upsertConventions: (msg: ChatMessage) => void
   clear: () => void
 }
 
@@ -16,13 +18,16 @@ export const useBearStore = create<BearState>()(
     persist(
       set => ({
         bears: 0,
-        messages: [],
+        conventions: [],
         increase: by => set(state => ({ bears: state.bears + by })),
-        chatresp: msg => set(state => ({ messages: compact(state.messages.concat(msg)) })),
-        clear: () => set({ bears: 0, messages: [] }),
+        upsertConventions: async (msg) => {
+          const conventions = await getConvention(msg.id)
+          set(() => ({ conventions: compact(conventions) }))
+        },
+        clear: () => set({ bears: 0, conventions: [] }),
       }),
       {
-        name: 'bear-storage',
+        name: 'aiflow-chat-storage',
       },
     ),
   ),

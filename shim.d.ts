@@ -9,7 +9,7 @@ declare module 'webext-bridge' {
     'tab-prev': { title: string | undefined }
     'get-current-tab': ProtocolWithReturn<{ tabId: number | string }, { title: string }>
     'test': ProtocolWithReturn<{ value: string }, { message: ChatMessage }>
-    // message is Event typo
-    [ASK_CHATGPT]: ProtocolWithReturn<{ value: string }, { message: any }>
+    // message is ChatMessage typo
+    [ASK_CHATGPT]: ProtocolWithReturn<{ text?: string }, { message: any }>
   }
 }

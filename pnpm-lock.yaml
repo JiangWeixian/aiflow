@@ -23,6 +23,7 @@ specifiers:
   autoprefixer: ^10.4.14
   chatgpt: ^5.1.2
   chokidar: ^3.5.2
+  clsx: ^1.2.1
   cmdk: ^0.2.0
   cross-env: ^7.0.3
   crx: ^5.0.1
@@ -38,6 +39,7 @@ specifiers:
   lint-staged: ^11.1.2
   lodash-es: ^4.17.21
   npm-run-all: ^4.1.5
+  p-timeout: ^6.1.1
   postcss: ^8.4.21
   react: ^18.2.0
   react-dom: ^18.2.0
@@ -62,10 +64,12 @@ dependencies:
   '@radix-ui/react-dialog': 1.0.3_zula6vjvt3wdocc4mwcxqa6nzi
   '@radix-ui/react-popover': 1.0.5_zula6vjvt3wdocc4mwcxqa6nzi
   '@react-spring/web': 9.7.1_biqbaboplfbrettd7655fr4n2y
+  clsx: 1.2.1
   cmdk: 0.2.0_zula6vjvt3wdocc4mwcxqa6nzi
   document-ready: 2.0.2
   eventsource-parser: 0.1.0
   lodash-es: 4.17.21
+  p-timeout: 6.1.1
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   uuid: 9.0.0
@@ -2700,6 +2704,11 @@ packages:
     resolution: {integrity: sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==}
     engines: {node: '>=0.8'}
     dev: true
+
+  /clsx/1.2.1:
+    resolution: {integrity: sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==}
+    engines: {node: '>=6'}
+    dev: false
 
   /cmdk/0.2.0_zula6vjvt3wdocc4mwcxqa6nzi:
     resolution: {integrity: sha512-JQpKvEOb86SnvMZbYaFKYhvzFntWBeSZdyii0rZPhKJj9uwJBxu4DaVYDrRN7r3mPop56oPhRw+JYWTKs66TYw==}
@@ -6490,7 +6499,6 @@ packages:
   /p-timeout/6.1.1:
     resolution: {integrity: sha512-yqz2Wi4fiFRpMmK0L2pGAU49naSUaP23fFIQL2Y6YT+qDGPoFwpvgQM/wzc6F8JoenUkIlAFa4Ql7NguXBxI7w==}
     engines: {node: '>=14.16'}
-    dev: true
 
   /p-try/2.2.0:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}

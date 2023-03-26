@@ -1,28 +1,8 @@
-export interface Answer {
-  text: string
-  id: string
-  conversationId: string
-}
+// import type Keyv from 'keyv'
 
-export type Event =
-  | {
-    type: 'answer'
-    data: ChatMessage
-  }
-  | {
-    type: 'done'
-    data?: undefined
-  }
+export type Role = 'user' | 'assistant' | 'system'
 
-export interface GenerateAnswerParams {
-  prompt: string
-  onEvent: (event: Event) => void
-  signal?: AbortSignal
-}
-
-export interface Provider {
-  sendMessage(text: string, params: SendMessageOptions): Promise<Event>
-}
+export type FetchFn = typeof fetch
 
 export interface ChatGPTAPIOptions {
   apiKey: string
@@ -45,18 +25,14 @@ export interface ChatGPTAPIOptions {
   /** @defaultValue `1000` **/
   maxResponseTokens?: number
 
-  // TODO: implement it if need convention
   // messageStore?: Keyv
-  // getMessageById?: GetMessageByIdFunction
-  // upsertMessage?: UpsertMessageFunction
+  getMessageById?: GetMessageByIdFunction
+  upsertMessage?: UpsertMessageFunction
 
-  // fetch?: FetchFn
+  fetch?: FetchFn
 }
 
 export interface SendMessageOptions {
-  // TODO: merge with GenerateAnswerParams
-  onEvent: (event: Event) => void
-  signal?: AbortSignal
   /** The name of a user in a multi-user chat. */
   name?: string
   parentMessageId?: string
@@ -71,7 +47,17 @@ export interface SendMessageOptions {
   >
 }
 
-export type Role = 'user' | 'assistant' | 'system'
+export type MessageActionType = 'next' | 'variant'
+
+export interface SendMessageBrowserOptions {
+  conversationId?: string
+  parentMessageId?: string
+  messageId?: string
+  action?: MessageActionType
+  timeoutMs?: number
+  onProgress?: (partialResponse: ChatMessage) => void
+  abortSignal?: AbortSignal
+}
 
 export interface ChatMessage {
   id: string
@@ -86,6 +72,106 @@ export interface ChatMessage {
   // only relevant for ChatGPTUnofficialProxyAPI
   conversationId?: string
 }
+
+export class ChatGPTError extends Error {
+  statusCode?: number
+  statusText?: string
+  isFinal?: boolean
+  accountId?: string
+}
+
+/** Returns a chat message from a store by it's ID (or null if not found). */
+export type GetMessageByIdFunction = (id: string) => Promise<ChatMessage>
+
+/** Upserts a chat message to a store. */
+export type UpsertMessageFunction = (message: ChatMessage) => Promise<void>
+
+/**
+ * https://chat.openapi.com/backend-api/conversation
+ */
+export interface ConversationJSONBody {
+  /**
+   * The action to take
+   */
+  action: string
+
+  /**
+   * The ID of the conversation
+   */
+  conversation_id?: string
+
+  /**
+   * Prompts to provide
+   */
+  messages: Prompt[]
+
+  /**
+   * The model to use
+   */
+  model: string
+
+  /**
+   * The parent message ID
+   */
+  parent_message_id: string
+}
+
+export interface Prompt {
+  /**
+   * The content of the prompt
+   */
+  content: PromptContent
+
+  /**
+   * The ID of the prompt
+   */
+  id: string
+
+  /**
+   * The role played in the prompt
+   */
+  role: Role
+}
+
+export type ContentType = 'text'
+
+export interface PromptContent {
+  /**
+   * The content type of the prompt
+   */
+  content_type: ContentType
+
+  /**
+   * The parts to the prompt
+   */
+  parts: string[]
+}
+
+export interface ConversationResponseEvent {
+  message?: Message
+  conversation_id?: string
+  error?: string | null
+}
+
+export interface Message {
+  id: string
+  content: MessageContent
+  role: Role
+  user: string | null
+  create_time: string | null
+  update_time: string | null
+  end_turn: null
+  weight: number
+  recipient: string
+  metadata: MessageMetadata
+}
+
+export interface MessageContent {
+  content_type: string
+  parts: string[]
+}
+
+export type MessageMetadata = any
 
 export namespace openai {
   export interface CreateChatCompletionDeltaResponse {

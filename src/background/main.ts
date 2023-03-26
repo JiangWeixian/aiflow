@@ -1,13 +1,16 @@
 import { onMessage, sendMessage } from 'webext-bridge'
 import type { Tabs } from 'webextension-polyfill'
 import browser from 'webextension-polyfill'
-import { OpenAIProvider } from '~/logic/openai'
-import { GET_CURRENT_TAB } from '~/logic/constants'
+import { ChatGPTAPI } from '~/logic/openai'
+import { ASK_CHATGPT, GET_CURRENT_TAB } from '~/logic/constants'
+import { createMessageStore } from '~/logic/openai/message-store'
 
 browser.runtime.onInstalled.addListener((): void => {
   // eslint-disable-next-line no-console
   console.log('Extension installed')
 })
+
+const store = createMessageStore()
 
 let previousTabId = 0
 
@@ -33,9 +36,7 @@ browser.tabs.onActivated.addListener(async ({ tabId }) => {
   sendMessage('tab-prev', { title: tab.title }, { context: 'content-script', tabId })
 })
 
-const client = new OpenAIProvider(
-  // TODO: replace with user config
-  'gpt-3.5-turbo',
+const client = new ChatGPTAPI(
   { apiKey: process.env.OPENAI_API_KEY! },
 )
 
@@ -45,8 +46,8 @@ onMessage(GET_CURRENT_TAB, async (message) => {
     console.log(tabs, message, client, process.env.OPENAI_API_KEY)
     client.sendMessage('hello! my name is jiangweixian', {
       stream: true,
-      onEvent(e) {
-        console.log(e.data)
+      onProgress(e) {
+        console.log(e)
       },
     })
     return { id: tabs[0]?.id }
@@ -55,16 +56,25 @@ onMessage(GET_CURRENT_TAB, async (message) => {
   }
 })
 
-onMessage('ask-chatgpt', async (message) => {
+onMessage(ASK_CHATGPT, async (message) => {
   try {
+    const { data } = message
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
-    console.log(tabs, message, client, process.env.OPENAI_API_KEY)
-    const resp = await client.sendMessage('hello! my name is jiangweixian', {
+    console.log(ASK_CHATGPT, 'in background', tabs, message)
+    if (!data.text) {
+      return {
+        message: undefined,
+      }
+    }
+    const parentMessageId = await store.get(ASK_CHATGPT)
+    const resp = await client.sendMessage(data.text, {
       stream: true,
-      onEvent(e) {
-        console.log(e.data)
+      parentMessageId,
+      onProgress(e) {
+        console.log(e)
       },
     })
+    await store.set(ASK_CHATGPT, resp.id)
     return {
       // promise message is safe json-like value
       message: resp as any,

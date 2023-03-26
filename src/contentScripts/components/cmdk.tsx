@@ -1,45 +1,94 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
-import { Command } from 'cmdk'
-import { onMessage, sendMessage } from 'webext-bridge'
+import { Command, useCommandState } from 'cmdk'
+import { sendMessage } from 'webext-bridge'
 
 import { useBearStore } from '~/logic/store'
-import { ASK_CHATGPT, GET_CURRENT_TAB } from '~/logic/constants'
+import { ASK_CHATGPT, ASK_CHATGPT_PAGE, ASK_CHATGPT_WITH } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
+import { createMessageStore } from '~/logic/openai/message-store'
 
 // TODO: use theme perfer query
-const theme = 'dark'
+// const theme = 'dark'
+const messageStore = createMessageStore()
+
+interface ItemProps {
+  onSelect: (type: string, params?: { text: string }) => void
+}
+
+type Pages = 'home' | typeof ASK_CHATGPT_PAGE
 
 export function CMDK() {
   // const { resolvedTheme: theme } = useTheme()
   // which command
   const [value, setValue] = React.useState('linear')
   const [open, setOpen] = useState(false)
+  const [searchInputValue] = useState(getSearchInputValue())
+  // used for switch different page
+  const inputValueRef = useRef<string>()
   const containerRef = useRef<HTMLDivElement>(null)
+  const commandRef = React.useRef<HTMLDivElement | null>(null)
   const inputRef = React.useRef<HTMLInputElement | null>(null)
   const listRef = React.useRef(null)
-  const { increase, chatresp, clear } = useBearStore()
+  const [pages, setPages] = React.useState<Pages[]>(['home'])
+  const activePage = pages[pages.length - 1]
+  const { upsertConventions, clear } = useBearStore()
+
+  // debug clear all data in localstorage and browser storage
+  // useEffect(() => {
+  //   clear()
+  //   messageStore.clear()
+  // }, [clear])
+
+  const popPage = useCallback(() => {
+    setPages((pages) => {
+      const x = [...pages]
+      x.splice(-1, 1)
+      return x
+    })
+  }, [])
+
+  function bounce() {
+    if (commandRef.current) {
+      commandRef.current.style.transform = 'scale(0.96)'
+      setTimeout(() => {
+        if (commandRef.current) {
+          commandRef.current.style.transform = ''
+        }
+      }, 100)
+
+      // setInputValue('')
+    }
+  }
 
   // trigger on item active(navigate)
-  const handleValueChange = (v: string) => {
+  const handleValueChange = useCallback((v: string) => {
     console.log(v)
     setValue(v)
-  }
+  }, [])
 
   // trigger on item select
-  const handleValueSelect = async (value: string) => {
+  const handleValueSelect: ItemProps['onSelect'] = useCallback(async (value: string, params) => {
     console.log('handleValueSelect', value)
+    // change pages..
+    if (value === ASK_CHATGPT_PAGE) {
+      setPages(prev => [...prev, ASK_CHATGPT_PAGE])
+      return
+    }
+    // comunication with background
+    if (value === ASK_CHATGPT_WITH) {
+      const data = await sendMessage(ASK_CHATGPT, { text: params?.text }, 'background')
+      upsertConventions(data.message)
+      return
+    }
     if (value === ASK_CHATGPT) {
       const searchValue = getSearchInputValue()
-      increase(1)
-      const data = await sendMessage('ask-chatgpt', { value: searchValue }, 'background')
-      console.log(value, data)
-      chatresp(data.message)
+      const data = await sendMessage(ASK_CHATGPT, { text: searchValue }, 'background')
+      upsertConventions(data.message)
     }
-    // sendMessage('test', { value }, 'background')
-  }
+  }, [upsertConventions])
 
   useEffect(() => {
     inputRef?.current?.focus()
@@ -50,12 +99,6 @@ export function CMDK() {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && e.metaKey) {
         setOpen(open => !open)
-        const value = getSearchInputValue()
-        // TODO: ask-chatgpt
-        // sendMessage(GET_CURRENT_TAB, { value }, 'background')
-        //   .then(res => {
-        //     console.log(res)
-        //   })
       }
     }
 
@@ -67,33 +110,46 @@ export function CMDK() {
     <>
       <RadixDialog.Root open={open}>
         <RadixDialog.Portal container={containerRef.current}>
-          <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
+          <RadixDialog.Overlay cmdk-overlay="" onClick={() => setOpen(false)} className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
           <RadixDialog.Content cmdk-dialog="" className="z-50">
-            <Command value={value} onValueChange={handleValueChange} loop={true} className="shadow-lg">
+            <Command
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if (e.key === 'Enter') {
+                  bounce()
+                }
+
+                if (activePage === 'home' || inputValueRef.current?.length) {
+                  return
+                }
+
+                if (e.key === 'Backspace') {
+                  e.preventDefault()
+                  popPage()
+                  bounce()
+                }
+              }}
+              ref={commandRef}
+              value={value}
+              onValueChange={handleValueChange}
+              loop={true}
+              className="shadow-lg"
+            >
               <div cmdk-raycast-top-shine="" />
+              <div className="flex items-center justify-start gap-2 px-3 pt-1">
+                {pages.map(p => (
+                  <div key={p} className="rounded-md bg-mayumi-gray-300 px-3 py-1 text-xs uppercase shadow">
+                    {p}
+                  </div>
+                ))}
+              </div>
               {/* autoFocus not working, use autofocus instead  */}
-              <Command.Input ref={inputRef} autofocus={true} autoFocus={true} placeholder="Search for apps and commands..." />
+              <Command.Input ref={inputRef} onValueChange={(v) => {
+                inputValueRef.current = v
+              }} autofocus={true} autoFocus={true} placeholder="Search for commands..." />
               <hr cmdk-raycast-loader="" />
               <Command.List ref={listRef}>
-                <Command.Empty>No results found.</Command.Empty>
-                <Command.Group heading="Commands">
-                  <Item isCommand={true} value="Create Workflow">
-                    <i className="gg-add/0.8 text-mayumi-gray-1200" />
-                    Create workflow
-                  </Item>
-                  <Item isCommand={true} onSelect={handleValueSelect} value={ASK_CHATGPT}>
-                    <i className="gg-girl/0.8 text-mayumi-gray-1200" />
-                    Ask ChatGPT
-                  </Item>
-                  <Item isCommand={true} value="Transplate full page">
-                    <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
-                    Tranasplate Page
-                  </Item>
-                  <Item isCommand={true} value="Transplate with placeholder">
-                    <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
-                    Tranasplate with `...`
-                  </Item>
-                </Command.Group>
+                {activePage === 'home' && <Home onSelect={handleValueSelect} searchInputValue={searchInputValue} />}
+                {activePage === ASK_CHATGPT_PAGE && <AskGPTs onSelect={handleValueSelect} /> }
               </Command.List>
               <div cmdk-raycast-footer="" className="justify-end">
                 {/* TODO: replace with brand icon */}
@@ -116,23 +172,76 @@ export function CMDK() {
   )
 }
 
+function Home({ onSelect, searchInputValue }: ItemProps & {
+  /** Get search input element value, e.g. Google search input */
+  searchInputValue: string
+}) {
+  return (
+    <>
+      <Command.Empty>No results found.</Command.Empty>
+      <Command.Group heading="Commands">
+        <Item isCommand={true} value="Create Workflow">
+          <i className="gg-add/0.8 text-mayumi-gray-1200" />
+          Create workflow
+        </Item>
+        <Item disabled={!searchInputValue} isCommand={true} onSelect={onSelect} value={ASK_CHATGPT}>
+          <i className="gg-girl/0.8 text-mayumi-gray-1200" />
+          Ask ChatGPT with <Suggestions>{searchInputValue ?? 'Current search input'}</Suggestions>
+        </Item>
+        <Item isCommand={true} onSelect={onSelect} value={ASK_CHATGPT_PAGE}>
+          <i className="gg-girl/0.8 text-mayumi-gray-1200" />
+          Ask ChatGPT with <Suggestions>...</Suggestions>
+        </Item>
+        <Item isCommand={true} value="Transplate full page">
+          <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
+          Tranasplate Page
+        </Item>
+        <Item isCommand={true} value="Transplate with placeholder">
+          <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
+          Tranasplate with `...`
+        </Item>
+      </Command.Group>
+    </>
+  )
+}
+
+function AskGPTs({ onSelect }: ItemProps) {
+  const search = useCommandState(state => state.search)
+  return (
+    <>
+      <Item value={search} isCommand={true} onSelect={() => {
+        onSelect(ASK_CHATGPT_WITH, { text: search })
+      }}>
+        <i className="gg-girl/0.8 text-mayumi-gray-1200" />
+        {search ?? 'Waiting for input...'}
+      </Item>
+    </>
+  )
+}
+
 function Item({
   children,
   value,
   isCommand = false,
   onSelect,
+  disabled = false,
 }: {
   children: React.ReactNode
-  value: string
+  value?: string
   isCommand?: boolean
+  disabled?: boolean
   onSelect?: (value: string) => void
 }) {
   return (
-    <Command.Item value={value} onSelect={onSelect}>
+    <Command.Item disabled={disabled} value={value} onSelect={onSelect}>
       {children}
       <span cmdk-raycast-meta="">{isCommand ? 'Command' : 'Application'}</span>
     </Command.Item>
   )
+}
+
+function Suggestions(props: React.PropsWithChildren<{}>) {
+  return <span className="rounded-lg border border-mayumi-gray-600 bg-mayumi-gray-200 px-2 font-mono text-sm text-mayumi-gray-1100">{props.children}</span>
 }
 
 function SubCommand({
@@ -234,50 +343,6 @@ function SubItem({ children, shortcut }: { children: React.ReactNode; shortcut: 
   )
 }
 
-function TerminalIcon() {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="4 17 10 11 4 5"></polyline>
-      <line x1="12" y1="19" x2="20" y2="19"></line>
-    </svg>
-  )
-}
-
-function RaycastLightIcon() {
-  return (
-    <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M934.302 511.971L890.259 556.017L723.156 388.902V300.754L934.302 511.971ZM511.897 89.5373L467.854 133.583L634.957 300.698H723.099L511.897 89.5373ZM417.334 184.275L373.235 228.377L445.776 300.923H533.918L417.334 184.275ZM723.099 490.061V578.209L795.641 650.755L839.74 606.652L723.099 490.061ZM697.868 653.965L723.099 628.732H395.313V300.754L370.081 325.987L322.772 278.675L278.56 322.833L325.869 370.146L300.638 395.379V446.071L228.097 373.525L183.997 417.627L300.638 534.275V634.871L133.59 467.925L89.4912 512.027L511.897 934.461L555.996 890.359L388.892 723.244H489.875L606.516 839.892L650.615 795.79L578.074 723.244H628.762L653.994 698.011L701.303 745.323L745.402 701.221L697.868 653.965Z"
-        fill="#FF6363"
-      />
-    </svg>
-  )
-}
-
-function RaycastDarkIcon() {
-  return (
-    <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M301.144 634.799V722.856L90 511.712L134.244 467.804L301.144 634.799ZM389.201 722.856H301.144L512.288 934L556.34 889.996L389.201 722.856ZM889.996 555.956L934 511.904L512.096 90L468.092 134.052L634.799 300.952H534.026L417.657 184.679L373.605 228.683L446.065 301.144H395.631V628.561H723.048V577.934L795.509 650.395L839.561 606.391L723.048 489.878V389.105L889.996 555.956ZM323.17 278.926L279.166 322.978L326.385 370.198L370.39 326.145L323.17 278.926ZM697.855 653.61L653.994 697.615L701.214 744.834L745.218 700.782L697.855 653.61ZM228.731 373.413L184.679 417.465L301.144 533.93V445.826L228.731 373.413ZM578.174 722.856H490.07L606.535 839.321L650.587 795.269L578.174 722.856Z"
-        fill="#FF6363"
-      />
-    </svg>
-  )
-}
-
 function WindowIcon() {
   return (
     <svg width="32" height="32" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -317,37 +382,5 @@ function StarIcon() {
         strokeLinejoin="round"
       />
     </svg>
-  )
-}
-
-function ClipboardIcon() {
-  return (
-    <div cmdk-raycast-clipboard-icon="">
-      <svg width="32" height="32" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M6.07512 2.75H4.75C3.64543 2.75 2.75 3.64543 2.75 4.75V12.25C2.75 13.3546 3.64543 14.25 4.75 14.25H11.25C12.3546 14.25 13.25 13.3546 13.25 12.25V4.75C13.25 3.64543 12.3546 2.75 11.25 2.75H9.92488M9.88579 3.02472L9.5934 4.04809C9.39014 4.75952 8.73989 5.25 8 5.25V5.25C7.26011 5.25 6.60986 4.75952 6.4066 4.04809L6.11421 3.02472C5.93169 2.38591 6.41135 1.75 7.07573 1.75H8.92427C9.58865 1.75 10.0683 2.3859 9.88579 3.02472Z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </div>
-  )
-}
-
-function HammerIcon() {
-  return (
-    <div cmdk-raycast-hammer-icon="">
-      <svg width="32" height="32" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M6.73762 6.19288L2.0488 11.2217C1.6504 11.649 1.6504 12.3418 2.0488 12.769L3.13083 13.9295C3.52923 14.3568 4.17515 14.3568 4.57355 13.9295L9.26238 8.90071M6.73762 6.19288L7.0983 5.80605C7.4967 5.37877 7.4967 4.686 7.0983 4.25872L6.01627 3.09822L6.37694 2.71139C7.57213 1.42954 9.50991 1.42954 10.7051 2.71139L13.9512 6.19288C14.3496 6.62017 14.3496 7.31293 13.9512 7.74021L12.8692 8.90071C12.4708 9.328 11.8248 9.328 11.4265 8.90071L11.0658 8.51388C10.6674 8.0866 10.0215 8.0866 9.62306 8.51388L9.26238 8.90071M6.73762 6.19288L9.26238 8.90071"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </div>
   )
 }
