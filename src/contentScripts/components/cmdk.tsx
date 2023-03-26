@@ -1,38 +1,41 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import type React from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { Command, useCommandState } from 'cmdk'
 import { sendMessage } from 'webext-bridge'
 
 import { useBearStore } from '~/logic/store'
-import { ASK_CHATGPT, ASK_CHATGPT_PAGE, ASK_CHATGPT_WITH } from '~/logic/constants'
+import type { ASK_CHATGPT_PAGE, TRANSLATE_CHATGPT_PAGE } from '~/logic/constants'
+import { ASK_CHATGPT, ASK_CHATGPT_WITH, TRANSLATE_WITH } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { createMessageStore } from '~/logic/openai/message-store'
+import { formatTranslatePrompt } from '~/logic/prompts/utils'
 
 // TODO: use theme perfer query
 // const theme = 'dark'
 const messageStore = createMessageStore()
 
 interface ItemProps {
-  onSelect: (type: string, params?: { text: string }) => void
+  onSelect: (type: string, params?: { text?: string }) => void
 }
 
-type Pages = 'home' | typeof ASK_CHATGPT_PAGE
+type Pages = 'home' | typeof ASK_CHATGPT_PAGE | typeof TRANSLATE_CHATGPT_PAGE
 
 export function CMDK() {
   // const { resolvedTheme: theme } = useTheme()
   // which command
-  const [value, setValue] = React.useState('linear')
+  const [value, setValue] = useState('')
   const [open, setOpen] = useState(false)
   const [searchInputValue] = useState(getSearchInputValue())
   // used for switch different page
   const inputValueRef = useRef<string>()
   const containerRef = useRef<HTMLDivElement>(null)
-  const commandRef = React.useRef<HTMLDivElement | null>(null)
-  const inputRef = React.useRef<HTMLInputElement | null>(null)
-  const listRef = React.useRef(null)
-  const [pages, setPages] = React.useState<Pages[]>(['home'])
+  const commandRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const listRef = useRef(null)
+  const [pages, setPages] = useState<Pages[]>(['home'])
   const activePage = pages[pages.length - 1]
   const { upsertConventions, clear } = useBearStore()
 
@@ -65,7 +68,6 @@ export function CMDK() {
 
   // trigger on item active(navigate)
   const handleValueChange = useCallback((v: string) => {
-    console.log(v)
     setValue(v)
   }, [])
 
@@ -73,19 +75,19 @@ export function CMDK() {
   const handleValueSelect: ItemProps['onSelect'] = useCallback(async (value: string, params) => {
     console.log('handleValueSelect', value)
     // change pages..
-    if (value === ASK_CHATGPT_PAGE) {
-      setPages(prev => [...prev, ASK_CHATGPT_PAGE])
+    if (value.endsWith('-page')) {
+      setPages(prev => [...prev, value] as Pages[])
       return
     }
     // comunication with background
     if (value === ASK_CHATGPT_WITH) {
-      const data = await sendMessage(ASK_CHATGPT, { text: params?.text }, 'background')
+      const data = await sendMessage(ASK_CHATGPT, { text: params?.text, action: ASK_CHATGPT_WITH }, 'background')
       upsertConventions(data.message)
       return
     }
-    if (value === ASK_CHATGPT) {
-      const searchValue = getSearchInputValue()
-      const data = await sendMessage(ASK_CHATGPT, { text: searchValue }, 'background')
+    // TODO: should not use send all parent message
+    if (value === TRANSLATE_WITH) {
+      const data = await sendMessage(ASK_CHATGPT, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH }, 'background')
       upsertConventions(data.message)
     }
   }, [upsertConventions])
@@ -110,7 +112,7 @@ export function CMDK() {
     <>
       <RadixDialog.Root open={open}>
         <RadixDialog.Portal container={containerRef.current}>
-          <RadixDialog.Overlay cmdk-overlay="" onClick={() => setOpen(false)} className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
+          <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
           <RadixDialog.Content cmdk-dialog="" className="z-50">
             <Command
               onKeyDown={(e: React.KeyboardEvent) => {
@@ -137,19 +139,20 @@ export function CMDK() {
               <div cmdk-raycast-top-shine="" />
               <div className="flex items-center justify-start gap-2 px-3 pt-1">
                 {pages.map(p => (
-                  <div key={p} className="rounded-md bg-mayumi-gray-300 px-3 py-1 text-xs uppercase shadow">
+                  <div key={p} className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase shadow">
                     {p}
                   </div>
                 ))}
               </div>
-              {/* autoFocus not working, use autofocus instead  */}
+              {/* FIXME: autofous looks like not working */}
               <Command.Input ref={inputRef} onValueChange={(v) => {
                 inputValueRef.current = v
               }} autofocus={true} autoFocus={true} placeholder="Search for commands..." />
               <hr cmdk-raycast-loader="" />
               <Command.List ref={listRef}>
                 {activePage === 'home' && <Home onSelect={handleValueSelect} searchInputValue={searchInputValue} />}
-                {activePage === ASK_CHATGPT_PAGE && <AskGPTs onSelect={handleValueSelect} /> }
+                {/* {activePage === ASK_CHATGPT_PAGE && <AskGPTs onSelect={handleValueSelect} /> } */}
+                {/* {activePage === TRANSLATE_CHATGPT_PAGE && <TranslateGPTs onSelect={handleValueSelect} /> } */}
               </Command.List>
               <div cmdk-raycast-footer="" className="justify-end">
                 {/* TODO: replace with brand icon */}
@@ -161,7 +164,7 @@ export function CMDK() {
 
                 <hr />
 
-                <SubCommand listRef={listRef} selectedValue={value} inputRef={inputRef} />
+                <SubCommand listRef={listRef} selectedValue={value} inputRef={inputRef} onSelect={handleValueSelect} />
               </div>
             </Command>
           </RadixDialog.Content>
@@ -184,21 +187,13 @@ function Home({ onSelect, searchInputValue }: ItemProps & {
           <i className="gg-add/0.8 text-mayumi-gray-1200" />
           Create workflow
         </Item>
-        <Item disabled={!searchInputValue} isCommand={true} onSelect={onSelect} value={ASK_CHATGPT}>
+        <Item isCommand={true} onSelect={() => onSelect(ASK_CHATGPT_WITH, { text: searchInputValue })} value={ASK_CHATGPT_WITH}>
           <i className="gg-girl/0.8 text-mayumi-gray-1200" />
-          Ask ChatGPT with <Suggestions>{searchInputValue ?? 'Current search input'}</Suggestions>
+          Ask ChatGPT
         </Item>
-        <Item isCommand={true} onSelect={onSelect} value={ASK_CHATGPT_PAGE}>
-          <i className="gg-girl/0.8 text-mayumi-gray-1200" />
-          Ask ChatGPT with <Suggestions>...</Suggestions>
-        </Item>
-        <Item isCommand={true} value="Transplate full page">
+        <Item isCommand={true} value={TRANSLATE_WITH}>
           <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
-          Tranasplate Page
-        </Item>
-        <Item isCommand={true} value="Transplate with placeholder">
-          <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
-          Tranasplate with `...`
+          Tranasplate
         </Item>
       </Command.Group>
     </>
@@ -213,10 +208,28 @@ function AskGPTs({ onSelect }: ItemProps) {
         onSelect(ASK_CHATGPT_WITH, { text: search })
       }}>
         <i className="gg-girl/0.8 text-mayumi-gray-1200" />
+        {search || 'Waiting for input...'}
+      </Item>
+    </>
+  )
+}
+
+function TranslateGPTs({ onSelect }: ItemProps) {
+  const search = useCommandState(state => state.search)
+  return (
+    <>
+      <Item value={search} isCommand={true} onSelect={() => {
+        onSelect(TRANSLATE_WITH, { text: search })
+      }}>
+        <i className="gg-girl/0.8 text-mayumi-gray-1200" />
         {search ?? 'Waiting for input...'}
       </Item>
     </>
   )
+}
+
+function Suggestions(props: React.PropsWithChildren<{}>) {
+  return <span className="truncate rounded-lg border border-mayumi-gray-600 bg-mayumi-gray-200 px-2 font-mono text-xs text-mayumi-gray-1100">{props.children}</span>
 }
 
 function Item({
@@ -240,24 +253,23 @@ function Item({
   )
 }
 
-function Suggestions(props: React.PropsWithChildren<{}>) {
-  return <span className="rounded-lg border border-mayumi-gray-600 bg-mayumi-gray-200 px-2 font-mono text-sm text-mayumi-gray-1100">{props.children}</span>
-}
-
 function SubCommand({
   inputRef,
   listRef,
   selectedValue,
+  onSelect,
 }: {
   inputRef: React.RefObject<HTMLInputElement>
   listRef: React.RefObject<HTMLElement>
   selectedValue: string
-}) {
-  const [open, setOpen] = React.useState(false)
+} & ItemProps) {
+  const [open, setOpen] = useState(false)
+  const [, setInputValue] = useState<string>()
+  const subCommandinputRef = useRef<HTMLInputElement | null>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     function listener(e: KeyboardEvent) {
-      if (e.key === 'k' && e.metaKey) {
+      if (e.key === 'm' && e.metaKey) {
         e.preventDefault()
         setOpen(o => !o)
       }
@@ -270,7 +282,7 @@ function SubCommand({
     }
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     const el = listRef.current
 
     if (!el) {
@@ -284,17 +296,21 @@ function SubCommand({
     }
   }, [open, listRef])
 
+  useEffect(() => {
+    subCommandinputRef?.current?.focus()
+  }, [subCommandinputRef])
+
   return (
     <Popover.Root open={open} onOpenChange={setOpen} modal={true}>
       <Popover.Trigger cmdk-raycast-subcommand-trigger="" onClick={() => setOpen(true)} aria-expanded={open}>
         Actions
         <kbd>⌘</kbd>
-        <kbd>K</kbd>
+        <kbd>M</kbd>
       </Popover.Trigger>
       <Popover.Content
         side="top"
         align="end"
-        className="raycast-submenu"
+        className="raycast-submenu outline-none"
         sideOffset={16}
         alignOffset={0}
         onCloseAutoFocus={(e) => {
@@ -302,37 +318,59 @@ function SubCommand({
           inputRef?.current?.focus()
         }}
       >
-        <Command>
+        <Command loop={true} shouldFilter={false}>
           <Command.List>
-            <Command.Group heading={selectedValue}>
-              <SubItem shortcut="↵">
-                <WindowIcon />
-                Open Application
-              </SubItem>
-              <SubItem shortcut="⌘ ↵">
-                <FinderIcon />
-                Show in Finder
-              </SubItem>
-              <SubItem shortcut="⌘ I">
-                <FinderIcon />
-                Show Info in Finder
-              </SubItem>
-              <SubItem shortcut="⌘ ⇧ F">
-                <StarIcon />
-                Add to Favorites
-              </SubItem>
+            <Command.Group heading={selectedValue?.toUpperCase()}>
+              {selectedValue === ASK_CHATGPT_WITH && <AskGPTSubCommands onSelect={onSelect} />}
+              {selectedValue === TRANSLATE_WITH && <TranslateSubCommands onSelect={onSelect} />}
             </Command.Group>
           </Command.List>
-          <Command.Input placeholder="Search for actions..." />
+          <Command.Input autoFocus={true} autofocus={true} onValueChange={setInputValue} ref={subCommandinputRef} placeholder="Search for actions..." />
         </Command>
       </Popover.Content>
     </Popover.Root>
   )
 }
 
-function SubItem({ children, shortcut }: { children: React.ReactNode; shortcut: string }) {
+function AskGPTSubCommands({ onSelect }: ItemProps) {
+  const { search } = useCommandState(state => state)
   return (
-    <Command.Item>
+    <>
+      <SubItem value="search-input" onSelect={() => {
+        onSelect(ASK_CHATGPT_WITH, { text: getSearchInputValue() })
+      }} shortcut="↵">
+        <span className="truncate">{getSearchInputValue() ?? 'Search input'}</span>
+      </SubItem>
+      <SubItem onSelect={() => {
+        onSelect(ASK_CHATGPT_WITH, { text: search })
+      }} value={search || '...'} shortcut="⌘ ↵">
+        <span className="truncate">{search || '...'}</span>
+      </SubItem>
+    </>
+  )
+}
+
+function TranslateSubCommands({ onSelect }: ItemProps) {
+  const { search } = useCommandState(state => state)
+  return (
+    <>
+      <SubItem value="translate-full-page" onSelect={() => {
+        onSelect(TRANSLATE_WITH, { text: getSearchInputValue() })
+      }} shortcut="↵">
+        <span className="truncate">{'Translate full page'}</span>
+      </SubItem>
+      <SubItem onSelect={() => {
+        onSelect(TRANSLATE_WITH, { text: search })
+      }} value={search || '...'} shortcut="⌘ ↵">
+        <span className="truncate">{search || '...'}</span>
+      </SubItem>
+    </>
+  )
+}
+
+function SubItem({ children, shortcut, value, onSelect }: { children: React.ReactNode; shortcut: string; value?: string } & ItemProps) {
+  return (
+    <Command.Item value={value} onSelect={onSelect}>
       {children}
       <div cmdk-raycast-submenu-shortcuts="">
         {shortcut.split(' ').map((key) => {
@@ -340,47 +378,5 @@ function SubItem({ children, shortcut }: { children: React.ReactNode; shortcut: 
         })}
       </div>
     </Command.Item>
-  )
-}
-
-function WindowIcon() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M14.25 4.75V3.75C14.25 2.64543 13.3546 1.75 12.25 1.75H3.75C2.64543 1.75 1.75 2.64543 1.75 3.75V4.75M14.25 4.75V12.25C14.25 13.3546 13.3546 14.25 12.25 14.25H3.75C2.64543 14.25 1.75 13.3546 1.75 12.25V4.75M14.25 4.75H1.75"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function FinderIcon() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M5 4.75V6.25M11 4.75V6.25M8.75 1.75H3.75C2.64543 1.75 1.75 2.64543 1.75 3.75V12.25C1.75 13.3546 2.64543 14.25 3.75 14.25H8.75M8.75 1.75H12.25C13.3546 1.75 14.25 2.64543 14.25 3.75V12.25C14.25 13.3546 13.3546 14.25 12.25 14.25H8.75M8.75 1.75L7.08831 7.1505C6.9202 7.69686 7.32873 8.25 7.90037 8.25C8.36961 8.25 8.75 8.63039 8.75 9.09963V14.25M5 10.3203C5 10.3203 5.95605 11.25 8 11.25C10.0439 11.25 11 10.3203 11 10.3203"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function StarIcon() {
-  return (
-    <svg width="32" height="32" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M7.43376 2.17103C7.60585 1.60966 8.39415 1.60966 8.56624 2.17103L9.61978 5.60769C9.69652 5.85802 9.92611 6.02873 10.186 6.02873H13.6562C14.2231 6.02873 14.4665 6.75397 14.016 7.10088L11.1582 9.3015C10.9608 9.45349 10.8784 9.71341 10.9518 9.95262L12.0311 13.4735C12.2015 14.0292 11.5636 14.4777 11.1051 14.1246L8.35978 12.0106C8.14737 11.847 7.85263 11.847 7.64022 12.0106L4.89491 14.1246C4.43638 14.4777 3.79852 14.0292 3.96889 13.4735L5.04824 9.95262C5.12157 9.71341 5.03915 9.45349 4.84178 9.3015L1.98404 7.10088C1.53355 6.75397 1.77692 6.02873 2.34382 6.02873H5.81398C6.07389 6.02873 6.30348 5.85802 6.38022 5.60769L7.43376 2.17103Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   )
 }

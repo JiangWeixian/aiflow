@@ -7,7 +7,7 @@ import { getConvention } from '~/logic/storage'
 
 interface BearState {
   bears: number
-  conventions: ChatMessage[]
+  conventions: Partial<ChatMessage>[]
   increase: (by: number) => void
   upsertConventions: (msg: ChatMessage) => void
   clear: () => void

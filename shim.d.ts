@@ -10,6 +10,6 @@ declare module 'webext-bridge' {
     'get-current-tab': ProtocolWithReturn<{ tabId: number | string }, { title: string }>
     'test': ProtocolWithReturn<{ value: string }, { message: ChatMessage }>
     // message is ChatMessage typo
-    [ASK_CHATGPT]: ProtocolWithReturn<{ text?: string }, { message: any }>
+    [ASK_CHATGPT]: ProtocolWithReturn<{ text?: string; action: string }, { message: any }>
   }
 }

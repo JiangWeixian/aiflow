@@ -2,8 +2,9 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import type { Tabs } from 'webextension-polyfill'
 import browser from 'webextension-polyfill'
 import { ChatGPTAPI } from '~/logic/openai'
-import { ASK_CHATGPT, GET_CURRENT_TAB } from '~/logic/constants'
+import { ASK_CHATGPT, GET_CURRENT_TAB, TRANSLATE_WITH } from '~/logic/constants'
 import { createMessageStore } from '~/logic/openai/message-store'
+import { systemMessages } from '~/logic/prompts/constants'
 
 browser.runtime.onInstalled.addListener((): void => {
   // eslint-disable-next-line no-console
@@ -60,21 +61,20 @@ onMessage(ASK_CHATGPT, async (message) => {
   try {
     const { data } = message
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
-    console.log(ASK_CHATGPT, 'in background', tabs, message)
+    const action = data.action
+    console.log(action, 'in background', tabs, message)
     if (!data.text) {
       return {
         message: undefined,
       }
     }
-    const parentMessageId = await store.get(ASK_CHATGPT)
+    const parentMessageId = await store.get(action)
     const resp = await client.sendMessage(data.text, {
       stream: true,
+      systemMessage: systemMessages[TRANSLATE_WITH],
       parentMessageId,
-      onProgress(e) {
-        console.log(e)
-      },
     })
-    await store.set(ASK_CHATGPT, resp.id)
+    await store.set(action, resp.id)
     return {
       // promise message is safe json-like value
       message: resp as any,

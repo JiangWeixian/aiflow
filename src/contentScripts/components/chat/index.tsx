@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import useMeasure from 'react-use-measure'
 import { a, useSpring } from '@react-spring/web'
 import clsx from 'clsx'
 
@@ -23,10 +22,8 @@ const MessageItem = ({ message }: { message: ChatMessage }) => {
 }
 
 export const Chat = () => {
-  // const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const { conventions } = useBearStore()
-  const [ref, bounds] = useMeasure()
   const [toggle, setToggle] = useState(false)
   const props = useSpring({ h: toggle ? 600 : 0, opacity: toggle ? 1 : 0 })
 
@@ -54,7 +51,7 @@ export const Chat = () => {
         </h2>
         { toggle ? <i className="gg-math-minus" /> : <i className="gg-math-plus" /> }
       </div>
-      <a.div ref={ref} style={{ height: props.h, opacity: props.opacity }} className="aiflow-messages w-[400px] max-w-[400px] bg-mayumi-gray-200">
+      <a.div style={{ height: props.h, opacity: props.opacity }} className="aiflow-messages w-[400px] max-w-[400px] bg-mayumi-gray-200">
         {conventions.map((message, index) => (
           <MessageItem key={index} message={message} />
         ))}
