@@ -108,7 +108,7 @@ export function CMDK() {
       <RadixDialog.Root open={open}>
         <RadixDialog.Portal container={containerRef.current}>
           <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
-          <RadixDialog.Content asChild={true} cmdk-dialog="" className="z-50">
+          <RadixDialog.Content cmdk-dialog="" className="z-50">
             <Command
               onKeyDown={(e: React.KeyboardEvent) => {
                 if (e.key === 'Enter') {
@@ -131,7 +131,6 @@ export function CMDK() {
               loop={true}
               className="shadow-lg"
             >
-              <div className="absolute inset-0 rounded-xl bg-mayumi-gray-200" style={{ zIndex: -1 }} />
               <div cmdk-raycast-top-shine="" />
               <div className="flex items-center justify-start gap-2 px-3 pt-1">
                 {pages.map(p => (
@@ -278,11 +277,13 @@ function SubCommand({
   const [, setInputValue] = useState<string>()
   const subCommandinputRef = useRef<HTMLInputElement | null>(null)
 
+  const hasSubCommand = selectedValue === ASK_CHATGPT_WITH || selectedValue === TRANSLATE_WITH
+
   useEffect(() => {
     function listener(e: KeyboardEvent) {
       if (e.key === 'm' && e.metaKey) {
         e.preventDefault()
-        setOpen(o => !o)
+        hasSubCommand && setOpen(o => !o)
       }
     }
 
@@ -291,7 +292,7 @@ function SubCommand({
     return () => {
       document.removeEventListener('keydown', listener)
     }
-  }, [])
+  }, [hasSubCommand])
 
   useEffect(() => {
     const el = listRef.current
@@ -312,8 +313,13 @@ function SubCommand({
   }, [subCommandinputRef])
 
   return (
-    <Popover.Root open={open} onOpenChange={setOpen} modal={true}>
-      <Popover.Trigger cmdk-raycast-subcommand-trigger="" onClick={() => setOpen(true)} aria-expanded={open}>
+    <Popover.Root open={open} onOpenChange={(v) => {
+      if (!hasSubCommand) {
+        return
+      }
+      setOpen(v)
+    }} modal={true}>
+      <Popover.Trigger disabled={!hasSubCommand} cmdk-raycast-subcommand-trigger="" onClick={() => setOpen(true)} aria-expanded={open}>
         Actions
         <kbd>⌘</kbd>
         <kbd>M</kbd>
@@ -321,7 +327,6 @@ function SubCommand({
       <Popover.Content
         side="top"
         align="end"
-        asChild={true}
         className="raycast-submenu outline-none"
         sideOffset={16}
         alignOffset={0}
