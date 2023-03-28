@@ -7,9 +7,9 @@ import { getConvention } from '~/logic/storage'
 
 interface BearState {
   bears: number
-  conventions: Partial<ChatMessage>[]
+  conventions: Record<string, Partial<ChatMessage>[]>
   increase: (by: number) => void
-  upsertConventions: (msg: ChatMessage) => void
+  upsertConventions: (conventionId: string, msg: ChatMessage) => void
   clear: () => void
 }
 
@@ -18,13 +18,18 @@ export const useBearStore = create<BearState>()(
     persist(
       set => ({
         bears: 0,
-        conventions: [],
+        conventions: {},
         increase: by => set(state => ({ bears: state.bears + by })),
-        upsertConventions: async (msg) => {
+        upsertConventions: async (conventionId: string, msg) => {
           const conventions = await getConvention(msg.id)
-          set(() => ({ conventions: compact(conventions) }))
+          set(state => ({
+            conventions: {
+              ...state.conventions,
+              [conventionId]: compact(conventions),
+            },
+          }))
         },
-        clear: () => set({ bears: 0, conventions: [] }),
+        clear: () => set({ bears: 0, conventions: {} }),
       }),
       {
         name: 'aiflow-chat-storage',

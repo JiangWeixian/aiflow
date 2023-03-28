@@ -3,6 +3,7 @@ import type { UserConfig } from 'vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import react from '@vitejs/plugin-react'
 import replace from '@rollup/plugin-replace'
+import svgr from 'vite-plugin-svgr'
 import { MV3Hmr } from './vite-mv-hmr'
 import { isDev, port, r } from './scripts/utils'
 
@@ -34,6 +35,8 @@ export const sharedConfig: UserConfig = {
         'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
       },
     }),
+
+    svgr(),
 
     // rewrite assets to use relative path
     {
@@ -79,7 +82,7 @@ export default defineConfig(({ command }) => {
     plugins: [
       ...sharedConfig.plugins!,
       // popup & options page hmr
-      MV3Hmr(),
+      isDev && MV3Hmr(),
     ],
   }
 })

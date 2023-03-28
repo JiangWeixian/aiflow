@@ -10,6 +10,7 @@ import type { ASK_CHATGPT_PAGE, TRANSLATE_CHATGPT_PAGE } from '~/logic/constants
 import { ASK_CHATGPT, ASK_CHATGPT_WITH, TRANSLATE_WITH } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
+import { ReactComponent as Trash } from '~/components/icons/trash.svg'
 import { createMessageStore } from '~/logic/openai/message-store'
 import { formatTranslatePrompt } from '~/logic/prompts/utils'
 
@@ -37,13 +38,7 @@ export function CMDK() {
   const listRef = useRef(null)
   const [pages, setPages] = useState<Pages[]>(['home'])
   const activePage = pages[pages.length - 1]
-  const { upsertConventions, clear } = useBearStore()
-
-  // debug clear all data in localstorage and browser storage
-  // useEffect(() => {
-  //   clear()
-  //   messageStore.clear()
-  // }, [clear])
+  const { upsertConventions } = useBearStore()
 
   const popPage = useCallback(() => {
     setPages((pages) => {
@@ -82,13 +77,13 @@ export function CMDK() {
     // comunication with background
     if (value === ASK_CHATGPT_WITH) {
       const data = await sendMessage(ASK_CHATGPT, { text: params?.text, action: ASK_CHATGPT_WITH }, 'background')
-      upsertConventions(data.message)
+      upsertConventions(ASK_CHATGPT_WITH, data.message)
       return
     }
     // TODO: should not use send all parent message
     if (value === TRANSLATE_WITH) {
       const data = await sendMessage(ASK_CHATGPT, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH }, 'background')
-      upsertConventions(data.message)
+      upsertConventions(TRANSLATE_WITH, data.message)
     }
   }, [upsertConventions])
 
@@ -145,10 +140,16 @@ export function CMDK() {
                   </div>
                 ))}
               </div>
-              {/* FIXME: autofous looks like not working */}
-              <Command.Input ref={inputRef} onValueChange={(v) => {
-                inputValueRef.current = v
-              }} autofocus={true} autoFocus={true} placeholder="Search for commands..." />
+              <Command.Input
+                ref={inputRef}
+                onValueChange={(v) => {
+                  inputValueRef.current = v
+                }}
+                // @ts-expect-error -- autofous looks like not working
+                autofocus={true}
+                autoFocus={true}
+                placeholder="Search for commands..."
+              />
               <hr cmdk-raycast-loader="" />
               <Command.List ref={listRef}>
                 {activePage === 'home' && <Home onSelect={handleValueSelect} searchInputValue={searchInputValue} />}
@@ -180,13 +181,22 @@ function Home({ onSelect, searchInputValue }: ItemProps & {
   /** Get search input element value, e.g. Google search input */
   searchInputValue: string
 }) {
+  const { clear } = useBearStore()
   return (
     <>
       <Command.Empty>No results found.</Command.Empty>
       <Command.Group heading="Commands">
-        <Item isCommand={true} value="Create Workflow">
+        {/* TODO: create workflow */}
+        {/* <Item isCommand={true} value="Create Workflow">
           <i className="gg-add/0.8 text-mayumi-gray-1200" />
           Create workflow
+        </Item> */}
+        <Item isCommand={true} value="clear-storage" onSelect={() => {
+          clear()
+          messageStore.clear()
+        }}>
+          <Trash />
+          Clear Storage
         </Item>
         <Item isCommand={true} onSelect={() => onSelect(ASK_CHATGPT_WITH, { text: searchInputValue })} value={ASK_CHATGPT_WITH}>
           <i className="gg-girl/0.8 text-mayumi-gray-1200" />

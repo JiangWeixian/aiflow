@@ -32,6 +32,7 @@
   "dependencies": {
     "@dqbd/tiktoken": "^1.0.2",
     "@radix-ui/react-dialog": "^1.0.3",
+    "@radix-ui/react-menu": "^2.0.4",
     "@radix-ui/react-popover": "^1.0.5",
     "@react-spring/web": "^9.7.1",
     "clsx": "^1.2.1",
@@ -86,6 +87,7 @@
     "typescript": "^4.4.2",
     "unplugin-auto-import": "^0.4.5",
     "vite": "^3.2.4",
+    "vite-plugin-svgr": "^2.4.0",
     "web-ext": "^6.3.0",
     "webext-bridge": "^4.1.1",
     "webextension-polyfill": "^0.8.0"

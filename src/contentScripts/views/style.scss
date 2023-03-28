@@ -556,6 +556,7 @@ a {
     border: 1px solid var(--gray6);
     background: var(--gray2);
     border-radius: 8px;
+    transform-origin: center center;
   }
 
   [cmdk-list] {
