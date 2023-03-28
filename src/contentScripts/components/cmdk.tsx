@@ -4,6 +4,7 @@ import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { Command, useCommandState } from 'cmdk'
 import { sendMessage } from 'webext-bridge'
+import FocusLock from 'react-focus-lock'
 
 import { useBearStore } from '~/logic/store'
 import type { ASK_CHATGPT_PAGE, TRANSLATE_CHATGPT_PAGE } from '~/logic/constants'
@@ -86,15 +87,12 @@ export function CMDK() {
       upsertConventions(TRANSLATE_WITH, data.message)
     }
   }, [upsertConventions])
-
-  useEffect(() => {
-    inputRef?.current?.focus()
-  }, [inputRef])
-
+  
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && e.metaKey) {
+        console.log('onOpenChange', document.querySelector('[data-inputid="aiflow-command-input"]'))
         setOpen(open => !open)
       }
     }
@@ -108,7 +106,8 @@ export function CMDK() {
       <RadixDialog.Root open={open}>
         <RadixDialog.Portal container={containerRef.current}>
           <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
-          <RadixDialog.Content cmdk-dialog="" className="z-50">
+          <RadixDialog.Content cmdk-dialog="" className="z-50 shadow-lg">
+            <FocusLock>
             <Command
               onKeyDown={(e: React.KeyboardEvent) => {
                 if (e.key === 'Enter') {
@@ -129,7 +128,6 @@ export function CMDK() {
               value={value}
               onValueChange={handleValueChange}
               loop={true}
-              className="shadow-lg"
             >
               <div cmdk-raycast-top-shine="" />
               <div className="flex items-center justify-start gap-2 px-3 pt-1">
@@ -144,8 +142,6 @@ export function CMDK() {
                 onValueChange={(v) => {
                   inputValueRef.current = v
                 }}
-                // @ts-expect-error -- autofous looks like not working
-                autofocus={true}
                 autoFocus={true}
                 placeholder="Search for commands..."
               />
@@ -156,9 +152,6 @@ export function CMDK() {
                 {/* {activePage === TRANSLATE_CHATGPT_PAGE && <TranslateGPTs onSelect={handleValueSelect} /> } */}
               </Command.List>
               <div cmdk-raycast-footer="" className="justify-end">
-                {/* TODO: replace with brand icon */}
-                {/* {theme === 'dark' ? <RaycastDarkIcon /> : <RaycastLightIcon />} */}
-
                 <button cmdk-raycast-open-trigger="">
                   <kbd>↵</kbd>
                 </button>
@@ -168,6 +161,7 @@ export function CMDK() {
                 <SubCommand listRef={listRef} selectedValue={value} inputRef={inputRef} onSelect={handleValueSelect} />
               </div>
             </Command>
+            </FocusLock>
           </RadixDialog.Content>
         </RadixDialog.Portal>
       </RadixDialog.Root>
@@ -208,38 +202,6 @@ function Home({ onSelect, searchInputValue }: ItemProps & {
       </Command.Group>
     </>
   )
-}
-
-function AskGPTs({ onSelect }: ItemProps) {
-  const search = useCommandState(state => state.search)
-  return (
-    <>
-      <Item value={search} isCommand={true} onSelect={() => {
-        onSelect(ASK_CHATGPT_WITH, { text: search })
-      }}>
-        <i className="gg-girl/0.8 text-mayumi-gray-1200" />
-        {search || 'Waiting for input...'}
-      </Item>
-    </>
-  )
-}
-
-function TranslateGPTs({ onSelect }: ItemProps) {
-  const search = useCommandState(state => state.search)
-  return (
-    <>
-      <Item value={search} isCommand={true} onSelect={() => {
-        onSelect(TRANSLATE_WITH, { text: search })
-      }}>
-        <i className="gg-girl/0.8 text-mayumi-gray-1200" />
-        {search ?? 'Waiting for input...'}
-      </Item>
-    </>
-  )
-}
-
-function Suggestions(props: React.PropsWithChildren<{}>) {
-  return <span className="truncate rounded-lg border border-mayumi-gray-600 bg-mayumi-gray-200 px-2 font-mono text-xs text-mayumi-gray-1100">{props.children}</span>
 }
 
 function Item({
@@ -308,10 +270,6 @@ function SubCommand({
     }
   }, [open, listRef])
 
-  useEffect(() => {
-    subCommandinputRef?.current?.focus()
-  }, [subCommandinputRef])
-
   return (
     <Popover.Root open={open} onOpenChange={(v) => {
       if (!hasSubCommand) {
@@ -335,15 +293,17 @@ function SubCommand({
           inputRef?.current?.focus()
         }}
       >
-        <Command loop={true} shouldFilter={false}>
-          <Command.List>
-            <Command.Group heading={selectedValue?.toUpperCase()}>
-              {selectedValue === ASK_CHATGPT_WITH && <AskGPTSubCommands onSelect={onSelect} />}
-              {selectedValue === TRANSLATE_WITH && <TranslateSubCommands onSelect={onSelect} />}
-            </Command.Group>
-          </Command.List>
-          <Command.Input autoFocus={true} autofocus={true} onValueChange={setInputValue} ref={subCommandinputRef} placeholder="Search for actions..." />
-        </Command>
+        <FocusLock>
+          <Command loop={true} shouldFilter={false}>
+            <Command.List>
+              <Command.Group heading={selectedValue?.toUpperCase()}>
+                {selectedValue === ASK_CHATGPT_WITH && <AskGPTSubCommands onSelect={onSelect} />}
+                {selectedValue === TRANSLATE_WITH && <TranslateSubCommands onSelect={onSelect} />}
+              </Command.Group>
+            </Command.List>
+            <Command.Input autoFocus={true} autofocus={true} onValueChange={setInputValue} ref={subCommandinputRef} placeholder="Search for actions..." />
+          </Command>
+        </FocusLock>
       </Popover.Content>
     </Popover.Root>
   )
