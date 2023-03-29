@@ -4,6 +4,8 @@ import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { Command, useCommandState } from 'cmdk'
 import { sendMessage } from 'webext-bridge'
+// autofocus not working on shadow-dom, this package make it work
+// more about this bugs: https://github.com/whatwg/html/issues/833 and https://github.com/theKashey/react-focus-lock/issues/188
 import FocusLock from 'react-focus-lock'
 
 import { useBearStore } from '~/logic/store'
@@ -87,12 +89,10 @@ export function CMDK() {
       upsertConventions(TRANSLATE_WITH, data.message)
     }
   }, [upsertConventions])
-  
   // Toggle the menu when ⌘K is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && e.metaKey) {
-        console.log('onOpenChange', document.querySelector('[data-inputid="aiflow-command-input"]'))
         setOpen(open => !open)
       }
     }
@@ -108,64 +108,64 @@ export function CMDK() {
           <RadixDialog.Overlay cmdk-overlay="" className="fixed top-0 left-0 z-0 h-screen w-screen backdrop-blur-sm" />
           <RadixDialog.Content cmdk-dialog="" className="z-50 shadow-lg">
             <FocusLock>
-            <Command
-              onKeyDown={(e: React.KeyboardEvent) => {
-                if (e.key === 'Enter') {
-                  bounce()
-                }
+              <Command
+                onKeyDown={(e: React.KeyboardEvent) => {
+                  if (e.key === 'Enter') {
+                    bounce()
+                  }
 
-                if (activePage === 'home' || inputValueRef.current?.length) {
-                  return
-                }
+                  if (activePage === 'home' || inputValueRef.current?.length) {
+                    return
+                  }
 
-                if (e.key === 'Backspace') {
-                  e.preventDefault()
-                  popPage()
-                  bounce()
-                }
-              }}
-              ref={commandRef}
-              value={value}
-              onValueChange={handleValueChange}
-              loop={true}
-            >
-              <div cmdk-raycast-top-shine="" />
-              <div className="flex items-center justify-start gap-2 px-3 pt-1">
-                {pages.map(p => (
-                  <div key={p} className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase shadow">
-                    {p}
-                  </div>
-                ))}
-              </div>
-              <Command.Input
-                ref={inputRef}
-                onValueChange={(v) => {
-                  inputValueRef.current = v
+                  if (e.key === 'Backspace') {
+                    e.preventDefault()
+                    popPage()
+                    bounce()
+                  }
                 }}
-                autoFocus={true}
-                placeholder="Search for commands..."
-              />
-              <hr cmdk-raycast-loader="" />
-              <Command.List ref={listRef}>
-                {activePage === 'home' && <Home onSelect={handleValueSelect} searchInputValue={searchInputValue} />}
-                {/* {activePage === ASK_CHATGPT_PAGE && <AskGPTs onSelect={handleValueSelect} /> } */}
-                {/* {activePage === TRANSLATE_CHATGPT_PAGE && <TranslateGPTs onSelect={handleValueSelect} /> } */}
-              </Command.List>
-              <div cmdk-raycast-footer="" className="justify-end">
-                <button cmdk-raycast-open-trigger="">
-                  <kbd>↵</kbd>
-                </button>
+                ref={commandRef}
+                value={value}
+                onValueChange={handleValueChange}
+                loop={true}
+              >
+                <div cmdk-raycast-top-shine="" />
+                <div className="flex items-center justify-start gap-2 px-3 pt-1">
+                  {pages.map(p => (
+                    <div key={p} className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase shadow">
+                      {p}
+                    </div>
+                  ))}
+                </div>
+                <Command.Input
+                  ref={inputRef}
+                  onValueChange={(v) => {
+                    inputValueRef.current = v
+                  }}
+                  autoFocus={true}
+                  placeholder="Search for commands..."
+                />
+                <hr cmdk-raycast-loader="" />
+                <Command.List ref={listRef}>
+                  {activePage === 'home' && <Home onSelect={handleValueSelect} searchInputValue={searchInputValue} />}
+                  {/* {activePage === ASK_CHATGPT_PAGE && <AskGPTs onSelect={handleValueSelect} /> } */}
+                  {/* {activePage === TRANSLATE_CHATGPT_PAGE && <TranslateGPTs onSelect={handleValueSelect} /> } */}
+                </Command.List>
+                <div cmdk-raycast-footer="" className="justify-end">
+                  <button cmdk-raycast-open-trigger="">
+                    <kbd>↵</kbd>
+                  </button>
 
-                <hr />
+                  <hr />
 
-                <SubCommand listRef={listRef} selectedValue={value} inputRef={inputRef} onSelect={handleValueSelect} />
-              </div>
-            </Command>
+                  <SubCommand listRef={listRef} selectedValue={value} inputRef={inputRef} onSelect={handleValueSelect} />
+                </div>
+              </Command>
             </FocusLock>
           </RadixDialog.Content>
         </RadixDialog.Portal>
       </RadixDialog.Root>
-      <div id="aiflow-dialog-container" className="raycast fixed top-0 left-0 z-50" ref={containerRef} />
+      <div id="aiflow-dialog-container" className="raycast fixed top-0 left-0" ref={containerRef} />
     </>
   )
 }
@@ -301,7 +301,7 @@ function SubCommand({
                 {selectedValue === TRANSLATE_WITH && <TranslateSubCommands onSelect={onSelect} />}
               </Command.Group>
             </Command.List>
-            <Command.Input autoFocus={true} autofocus={true} onValueChange={setInputValue} ref={subCommandinputRef} placeholder="Search for actions..." />
+            <Command.Input autoFocus={true} onValueChange={setInputValue} ref={subCommandinputRef} placeholder="Search for actions..." />
           </Command>
         </FocusLock>
       </Popover.Content>

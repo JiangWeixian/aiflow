@@ -2,7 +2,7 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import type { Tabs } from 'webextension-polyfill'
 import browser from 'webextension-polyfill'
 import { ChatGPTAPI } from '~/logic/openai'
-import { ASK_CHATGPT, GET_CURRENT_TAB, TRANSLATE_WITH } from '~/logic/constants'
+import { ASK_CHATGPT, GET_CURRENT_TAB } from '~/logic/constants'
 import { createMessageStore } from '~/logic/openai/message-store'
 import { systemMessages } from '~/logic/prompts/constants'
 
@@ -41,16 +41,9 @@ const client = new ChatGPTAPI(
   { apiKey: process.env.OPENAI_API_KEY! },
 )
 
-onMessage(GET_CURRENT_TAB, async (message) => {
+onMessage(GET_CURRENT_TAB, async () => {
   try {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
-    console.log(tabs, message, client, process.env.OPENAI_API_KEY)
-    client.sendMessage('hello! my name is jiangweixian', {
-      stream: true,
-      onProgress(e) {
-        console.log(e)
-      },
-    })
     return { id: tabs[0]?.id }
   } catch {
     return {}
@@ -71,10 +64,17 @@ onMessage(ASK_CHATGPT, async (message) => {
     const parentMessageId = await store.get(action)
     const resp = await client.sendMessage(data.text, {
       stream: true,
-      systemMessage: systemMessages[TRANSLATE_WITH],
+      systemMessage: systemMessages[action] ?? undefined,
       parentMessageId,
     })
+    // save conventions into local browser storage
     await store.set(action, resp.id)
+    await browser.notifications.create({
+      type: 'basic',
+      iconUrl: browser.runtime.getURL('assets/icon-512.png'),
+      title: data.text,
+      message: resp.text,
+    })
     return {
       // promise message is safe json-like value
       message: resp as any,

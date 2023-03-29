@@ -46,14 +46,14 @@ export const Chat = () => {
   const messages: Partial<ChatMessage>[] = !controlledActiveConventionId ? [] : conventions[controlledActiveConventionId]
 
   return (
-    <div className="aiflow-chat z-100 leading-1em fixed right-10  bottom-0 m-5 flex select-none flex-col overflow-hidden rounded-lg border border-mayumi-gray-700 bg-mayumi-gray-200 font-sans shadow-lg">
+    <div className="aiflow-chat z-100 leading-1em fixed right-10  bottom-0 m-5 flex flex-col overflow-hidden rounded-lg border border-mayumi-gray-700 bg-mayumi-gray-200 font-sans shadow-lg">
       <div
         onClick={() => {
           setToggle(prev => !prev)
         }}
         className={
           clsx(
-            'flex cursor-pointer items-center justify-between border-mayumi-gray-700 p-3 text-mayumi-gray-1100 hover:bg-mayumi-gray-400',
+            'flex cursor-pointer select-none items-center justify-between border-mayumi-gray-700 p-3 text-mayumi-gray-1100 hover:bg-mayumi-gray-400',
             {
               'border-b-0': !toggle,
               'border-b': toggle,

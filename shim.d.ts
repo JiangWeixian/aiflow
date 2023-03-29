@@ -1,6 +1,6 @@
 import type { ProtocolWithReturn } from 'webext-bridge'
 import type { ChatMessage } from '~/logic/openai/types'
-import type { ASK_CHATGPT } from '~/logic/constants'
+import type { ACTIONS, ASK_CHATGPT } from '~/logic/constants'
 
 declare module 'webext-bridge' {
   export interface ProtocolMap {
@@ -10,6 +10,6 @@ declare module 'webext-bridge' {
     'get-current-tab': ProtocolWithReturn<{ tabId: number | string }, { title: string }>
     'test': ProtocolWithReturn<{ value: string }, { message: ChatMessage }>
     // message is ChatMessage typo
-    [ASK_CHATGPT]: ProtocolWithReturn<{ text?: string; action: string }, { message: any }>
+    [ASK_CHATGPT]: ProtocolWithReturn<{ text?: string; action: ACTIONS }, { message: any }>
   }
 }
