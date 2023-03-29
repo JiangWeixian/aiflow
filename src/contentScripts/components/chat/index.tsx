@@ -4,6 +4,9 @@ import clsx from 'clsx'
 
 import type { ChatMessage } from '~/logic/openai/types'
 import { useBearStore } from '~/logic/store'
+import { createMessageStore } from '~/logic/openai/message-store'
+
+const store = createMessageStore()
 
 const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
   return (
@@ -23,13 +26,12 @@ const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
 
 export const Chat = () => {
   // const [input, setInput] = useState('')
-  const { conventions } = useBearStore()
-  const [toggle, setToggle] = useState(false)
+  const { conventions, toggleChatOpen, chatOpen } = useBearStore()
   const [activeConventionId, setActiveConventionId] = useState<string | null>(null)
   const props = useSpring({
-    h: toggle ? 600 : 0,
-    w: toggle ? 500 : 100,
-    opacity: toggle ? 1 : 0,
+    h: chatOpen ? 600 : 0,
+    w: chatOpen ? 500 : 150,
+    opacity: chatOpen ? 1 : 0,
     config: config.default,
   })
 
@@ -45,33 +47,36 @@ export const Chat = () => {
   //   }
   // }
 
-  console.log(conventions)
+  store.getAll().then((res) => {
+    console.log(res)
+  })
   const conventionIds = Object.keys(conventions)
   const controlledActiveConventionId = activeConventionId || conventionIds[0]
   const messages: Partial<ChatMessage>[] = !controlledActiveConventionId ? [] : conventions[controlledActiveConventionId]
 
   return (
-    <div className="aiflow-chat z-100 leading-1em fixed right-0 bottom-0 m-5 flex max-w-[500px] flex-col overflow-hidden rounded-lg border border-mayumi-gray-700 bg-mayumi-gray-200 font-sans shadow-lg">
+    <div className="aiflow-chat leading-1em fixed right-0 bottom-0 z-40 m-5 flex max-w-[500px] flex-col overflow-hidden rounded-lg border border-mayumi-gray-700 bg-mayumi-gray-200 font-sans shadow-lg">
       <div
         onClick={() => {
-          setToggle(prev => !prev)
+          toggleChatOpen()
         }}
         className={
           clsx(
             'flex-0 flex cursor-pointer select-none items-center justify-between border-mayumi-gray-700 p-3 text-mayumi-gray-1100 hover:bg-mayumi-gray-400',
             {
-              'border-b-0': !toggle,
-              'border-b': toggle,
+              'border-b-0': !chatOpen,
+              'border-b': chatOpen,
             },
           )}
         >
-        <h2 className="rounded-md bg-transparent px-3 py-1 text-sm font-bold uppercase shadow">
+        <h2 className="rounded-md bg-transparent px-3 py-1 text-sm font-bold uppercase">
           Chat
         </h2>
+        { chatOpen && <kbd className="flex h-5 items-center justify-center rounded bg-mayumi-gray-300 px-2 font-sans text-xs uppercase text-mayumi-gray-1100">esc</kbd> }
       </div>
       <a.div style={{ height: props.h, opacity: props.opacity, width: props.w }} className="flex">
         {/* conventions chats list */}
-        <div className="grid grid-flow-row auto-rows-max border-r border-mayumi-gray-700 p-2 font-semibold">
+        <div className="grid min-w-[150px] grid-flow-row auto-rows-max border-r border-mayumi-gray-700 p-2 font-semibold">
           {conventionIds.map((id) => {
             return (
               <div

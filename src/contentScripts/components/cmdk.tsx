@@ -41,7 +41,7 @@ export function CMDK() {
   const listRef = useRef(null)
   const [pages, setPages] = useState<Pages[]>(['home'])
   const activePage = pages[pages.length - 1]
-  const { upsertConventions } = useBearStore()
+  const { upsertConventions, updateChatOpen } = useBearStore()
 
   const popPage = useCallback(() => {
     setPages((pages) => {
@@ -81,12 +81,14 @@ export function CMDK() {
     if (value === ASK_CHATGPT_WITH) {
       const data = await sendMessage(ASK_CHATGPT, { text: params?.text, action: ASK_CHATGPT_WITH }, 'background')
       upsertConventions(ASK_CHATGPT_WITH, data.message)
+      setOpen(false)
       return
     }
     // TODO: should not use send all parent message
     if (value === TRANSLATE_WITH) {
       const data = await sendMessage(ASK_CHATGPT, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH }, 'background')
       upsertConventions(TRANSLATE_WITH, data.message)
+      setOpen(false)
     }
   }, [upsertConventions])
   // Toggle the menu when ⌘K is pressed
@@ -94,6 +96,13 @@ export function CMDK() {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && e.metaKey) {
         setOpen(open => !open)
+        updateChatOpen(false)
+      }
+
+      // close modal when press esc
+      if (e.key === 'Escape') {
+        setOpen(false)
+        updateChatOpen(false)
       }
     }
 
