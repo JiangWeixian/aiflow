@@ -4,9 +4,6 @@ import clsx from 'clsx'
 
 import type { ChatMessage } from '~/logic/openai/types'
 import { useBearStore } from '~/logic/store'
-import { createMessageStore } from '~/logic/openai/message-store'
-
-const store = createMessageStore()
 
 const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
   return (
@@ -80,9 +77,10 @@ export const Chat = () => {
               <div
                 className={
                   clsx(
-                    'flex items-center rounded-md bg-mayumi-gray-200 py-2 px-3 text-sm text-mayumi-gray-1100 hover:bg-mayumi-blue-400 hover:text-mayumi-gray-1200',
+                    'flex items-center rounded-md py-2 px-3 text-sm hover:bg-mayumi-blue-400 hover:text-mayumi-gray-1200',
                     {
                       'bg-mayumi-blue-400 text-mayumi-gray-1200': id === controlledActiveConventionId,
+                      'bg-mayumi-gray-200 text-mayumi-gray-1100': id !== controlledActiveConventionId,
                     },
                   )
                 }
