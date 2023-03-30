@@ -1,5 +1,6 @@
 import browser from 'webextension-polyfill'
 
+// Only avaliable in local storage
 export const createMessageStore = () => {
   return {
     set: async (key: string, value: any) => {

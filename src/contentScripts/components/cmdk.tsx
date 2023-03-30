@@ -7,25 +7,27 @@ import { sendMessage } from 'webext-bridge'
 // autofocus not working on shadow-dom, this package make it work
 // more about this bugs: https://github.com/whatwg/html/issues/833 and https://github.com/theKashey/react-focus-lock/issues/188
 import FocusLock from 'react-focus-lock'
+import { Input } from 'mayumi/input'
 
 import { useBearStore } from '~/logic/store'
-import type { ASK_CHATGPT_PAGE, TRANSLATE_CHATGPT_PAGE } from '~/logic/constants'
-import { ASK_CHATGPT, ASK_CHATGPT_WITH, TRANSLATE_WITH } from '~/logic/constants'
+import type { ASK_CHATGPT_PAGE } from '~/logic/constants'
+import { ASK_CHATGPT, ASK_CHATGPT_WITH, CONFIG_PAGE, OPENAI_API_KEY, TRANSLATE_WITH } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ReactComponent as Trash } from '~/components/icons/trash.svg'
+import { ReactComponent as OptionsIcon } from '~/components/icons/options.svg'
 import { createMessageStore } from '~/logic/openai/message-store'
+import { createUserConfig } from '~/logic/store/browser'
 import { formatTranslatePrompt } from '~/logic/prompts/utils'
 
-// TODO: use theme perfer query
-// const theme = 'dark'
 const messageStore = createMessageStore()
+const userConfigStore = createUserConfig()
 
 interface ItemProps {
   onSelect: (type: string, params?: { text?: string }) => void
 }
 
-type Pages = 'home' | typeof ASK_CHATGPT_PAGE | typeof TRANSLATE_CHATGPT_PAGE
+type Pages = 'home' | typeof ASK_CHATGPT_PAGE | typeof CONFIG_PAGE
 
 export function CMDK() {
   // const { resolvedTheme: theme } = useTheme()
@@ -84,7 +86,7 @@ export function CMDK() {
       setOpen(false)
       return
     }
-    // TODO: should not use send all parent message
+    // Should send all parent message?
     if (value === TRANSLATE_WITH) {
       const data = await sendMessage(ASK_CHATGPT, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH }, 'background')
       upsertConventions(TRANSLATE_WITH, data.message)
@@ -108,7 +110,7 @@ export function CMDK() {
 
     document.addEventListener('keydown', down)
     return () => document.removeEventListener('keydown', down)
-  }, [])
+  }, [updateChatOpen])
 
   return (
     <>
@@ -118,21 +120,6 @@ export function CMDK() {
           <RadixDialog.Content cmdk-dialog="" className="z-50 shadow-lg">
             <FocusLock>
               <Command
-                onKeyDown={(e: React.KeyboardEvent) => {
-                  if (e.key === 'Enter') {
-                    bounce()
-                  }
-
-                  if (activePage === 'home' || inputValueRef.current?.length) {
-                    return
-                  }
-
-                  if (e.key === 'Backspace') {
-                    e.preventDefault()
-                    popPage()
-                    bounce()
-                  }
-                }}
                 ref={commandRef}
                 value={value}
                 onValueChange={handleValueChange}
@@ -141,7 +128,7 @@ export function CMDK() {
                 <div cmdk-raycast-top-shine="" />
                 <div className="flex items-center justify-start gap-2 px-3 pt-1">
                   {pages.map(p => (
-                    <div key={p} className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase shadow">
+                    <div key={p} className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase text-mayumi-gray-1100 shadow">
                       {p}
                     </div>
                   ))}
@@ -153,10 +140,24 @@ export function CMDK() {
                   }}
                   autoFocus={true}
                   placeholder="Search for commands..."
+                  onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter') {
+                      bounce()
+                    }
+                    if (activePage === 'home' || inputValueRef.current?.length) {
+                      return
+                    }
+                    if (e.key === 'Backspace') {
+                      e.preventDefault()
+                      popPage()
+                      bounce()
+                    }
+                  }}
                 />
                 <hr cmdk-raycast-loader="" />
                 <Command.List ref={listRef}>
                   {activePage === 'home' && <Home onSelect={handleValueSelect} searchInputValue={searchInputValue} />}
+                  {activePage === CONFIG_PAGE && <Options />}
                   {/* {activePage === ASK_CHATGPT_PAGE && <AskGPTs onSelect={handleValueSelect} /> } */}
                   {/* {activePage === TRANSLATE_CHATGPT_PAGE && <TranslateGPTs onSelect={handleValueSelect} /> } */}
                 </Command.List>
@@ -200,6 +201,10 @@ function Home({ onSelect, searchInputValue }: ItemProps & {
           <Trash />
           Clear Storage
         </Item>
+        <Item isCommand={true} onSelect={() => onSelect(CONFIG_PAGE)} value={CONFIG_PAGE}>
+          <OptionsIcon />
+          Config
+        </Item>
         <Item isCommand={true} onSelect={() => onSelect(ASK_CHATGPT_WITH, { text: searchInputValue })} value={ASK_CHATGPT_WITH}>
           <i className="gg-girl/0.8 text-mayumi-gray-1200" />
           Ask ChatGPT
@@ -210,6 +215,31 @@ function Home({ onSelect, searchInputValue }: ItemProps & {
         </Item>
       </Command.Group>
     </>
+  )
+}
+
+function Options() {
+  const [key, setKey] = useState<string>()
+  useEffect(() => {
+    userConfigStore.get(OPENAI_API_KEY)
+      .then((res) => {
+        setKey(res)
+      })
+  }, [])
+  return (
+    <div className="flex flex-col items-center justify-center p-4">
+      <Input
+        light={true}
+        className="w-1/2"
+        value={key}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            userConfigStore.set({ [OPENAI_API_KEY]: e.currentTarget.value })
+          }
+          return false
+        }}
+      />
+    </div>
   )
 }
 
@@ -234,6 +264,7 @@ function Item({
   )
 }
 
+// Trigger by m key
 function SubCommand({
   inputRef,
   listRef,

@@ -9,4 +9,7 @@ export type ACTIONS = typeof ASK_CHATGPT_WITH | typeof TRANSLATE_WITH
 
 // commands group, should endwith -page
 export const ASK_CHATGPT_PAGE = 'ask-chatgpt-page'
-export const TRANSLATE_CHATGPT_PAGE = 'translate-chatgpt-page'
+export const CONFIG_PAGE = 'config-page'
+
+// user config keys
+export const OPENAI_API_KEY = 'OPENAI_API_KEY'

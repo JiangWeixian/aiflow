@@ -1,4 +1,5 @@
 const { cssgg } = require('tailwind-cssgg')
+const { mayumi, patterns } = require('mayumi/plugin')
 
 const gray = {
   100: ({ opacityValue }) => `hsla(0, 0%, 8.5%, ${opacityValue})`,
@@ -32,19 +33,6 @@ const blue = {
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./src/**/*.{js,ts,jsx,tsx}'],
-  plugins: [cssgg],
-  theme: {
-    extend: {
-      colors: {
-        // same as mayumi color theme preset
-        'mayumi-gray': {
-          ...gray,
-        },
-        'mayumi-blue': {
-          ...blue,
-        },
-      },
-    },
-  },
+  content: ['./src/**/*.{js,ts,jsx,tsx}', patterns],
+  plugins: [cssgg, mayumi],
 }
