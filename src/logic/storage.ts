@@ -5,9 +5,8 @@ const messageStore = createMessageStore()
 
 export const getConvention = async (id: string) => {
   let nextMessages: Partial<ChatMessage>[] = []
-  let parentMessageId = id
+  let parentMessageId: string | undefined = id
   const systemMessageOffset = 0
-  console.log(await messageStore.getAll())
   do {
     if (!parentMessageId) {
       break

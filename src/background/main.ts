@@ -2,9 +2,12 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import type { Tabs } from 'webextension-polyfill'
 import browser from 'webextension-polyfill'
 import { ChatGPTAPI } from '~/logic/openai'
-import { ASK_CHATGPT, GET_CURRENT_TAB } from '~/logic/constants'
+import { ASK_CHATGPT, GET_CURRENT_TAB, OPENAI_API_KEY } from '~/logic/constants'
 import { createMessageStore } from '~/logic/openai/message-store'
+import { createUserConfig } from '~/logic/store/browser'
 import { systemMessages } from '~/logic/prompts/constants'
+
+const isDev = process.env.NODE_ENV !== 'production'
 
 browser.runtime.onInstalled.addListener((): void => {
   // eslint-disable-next-line no-console
@@ -37,9 +40,21 @@ browser.tabs.onActivated.addListener(async ({ tabId }) => {
   sendMessage('tab-prev', { title: tab.title }, { context: 'content-script', tabId })
 })
 
-const client = new ChatGPTAPI(
-  { apiKey: process.env.OPENAI_API_KEY! },
-)
+let client: ChatGPTAPI
+const userConfigStore = createUserConfig()
+const createClient = async () => {
+  if (client) {
+    return { client, key: undefined }
+  }
+  const key = isDev ? process.env.OPENAI_API_KEY : await userConfigStore.get(OPENAI_API_KEY)
+  if (!key) {
+    return { client, key }
+  }
+  client = new ChatGPTAPI(
+    { apiKey: key },
+  )
+  return { client, key }
+}
 
 onMessage(GET_CURRENT_TAB, async () => {
   try {
@@ -61,8 +76,9 @@ onMessage(ASK_CHATGPT, async (message) => {
         message: undefined,
       }
     }
+    const { client: chatClient } = await createClient()
     const parentMessageId = await store.get(action)
-    const resp = await client.sendMessage(data.text, {
+    const resp = await chatClient.sendMessage(data.text, {
       stream: true,
       systemMessage: systemMessages[action] ?? undefined,
       parentMessageId,

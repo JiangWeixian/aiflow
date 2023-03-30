@@ -47,9 +47,7 @@ export const Chat = () => {
   //   }
   // }
 
-  store.getAll().then((res) => {
-    console.log(res)
-  })
+  console.log(conventions)
   const conventionIds = Object.keys(conventions)
   const controlledActiveConventionId = activeConventionId || conventionIds[0]
   const messages: Partial<ChatMessage>[] = !controlledActiveConventionId ? [] : conventions[controlledActiveConventionId]
