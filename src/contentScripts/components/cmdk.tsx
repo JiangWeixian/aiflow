@@ -371,11 +371,12 @@ function TranslateSubCommands({ onSelect }: ItemProps) {
   const { search } = useCommandState(state => state)
   return (
     <>
-      <SubItem value="translate-full-page" onSelect={() => {
+      {/* TODO: translate selected word */}
+      {/* <SubItem value="translate-full-page" onSelect={() => {
         onSelect(TRANSLATE_WITH, { text: getSearchInputValue() })
       }} shortcut="↵">
         <span className="truncate">{'Translate full page'}</span>
-      </SubItem>
+      </SubItem> */}
       <SubItem onSelect={() => {
         onSelect(TRANSLATE_WITH, { text: search })
       }} value={search || '...'} shortcut="⌘ ↵">
