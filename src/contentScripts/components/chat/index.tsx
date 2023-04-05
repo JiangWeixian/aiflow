@@ -21,6 +21,7 @@ const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
   )
 }
 
+// FIXME: Wrap it with popover content, prevent scrolling on body
 export const Chat = () => {
   // const [input, setInput] = useState('')
   const { conventions, toggleChatOpen, chatOpen } = useBearStore()
@@ -94,7 +95,7 @@ export const Chat = () => {
             )
           })}
         </div>
-        <div className="aiflow-messages flex-1 bg-mayumi-gray-300">
+        <div className="aiflow-messages flex-1 overflow-auto bg-mayumi-gray-300">
           {messages.map((message, index) => (
             <MessageItem key={index} message={message} />
           ))}
