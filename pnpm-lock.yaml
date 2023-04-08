@@ -18,6 +18,7 @@ specifiers:
   '@types/node': ^16.7.13
   '@types/react': ^18.0.28
   '@types/react-dom': ^18.0.11
+  '@types/turndown': ^5.0.1
   '@types/uuid': ^9.0.1
   '@types/webextension-polyfill': ^0.10.0
   '@vitejs/plugin-react': ^2.0.1
@@ -54,6 +55,7 @@ specifiers:
   tailwindcss: ^3.2.7
   terser: ^5.16.6
   tsup: ^6.6.3
+  turndown: ^7.1.2
   typescript: ^4.4.2
   unplugin-auto-import: ^0.4.5
   uuid: ^9.0.0
@@ -97,6 +99,7 @@ devDependencies:
   '@types/node': 16.18.16
   '@types/react': 18.0.28
   '@types/react-dom': 18.0.11
+  '@types/turndown': 5.0.1
   '@types/uuid': 9.0.1
   '@types/webextension-polyfill': 0.10.0
   '@vitejs/plugin-react': 2.2.0_vite@3.2.5
@@ -122,6 +125,7 @@ devDependencies:
   tailwindcss: 3.2.7_postcss@8.4.21
   terser: 5.16.6
   tsup: 6.6.3_uujdqti2krmttzhqvubwnsmcci
+  turndown: 7.1.2
   typescript: 4.9.5
   unplugin-auto-import: 0.4.20_vite@3.2.5
   vite: 3.2.5_2eqocdpxzlgmojmiwgfkyqlwce
@@ -1956,6 +1960,10 @@ packages:
     resolution: {integrity: sha512-5eQEtSCoESnh2FsiLTxE121IiE60hnMqcb435fShf4bpLRjEu1Eoekht23y6zXS9Ts3l+Szu3TARnTsA0GkOkQ==}
     dev: true
 
+  /@types/turndown/5.0.1:
+    resolution: {integrity: sha512-N8Ad4e3oJxh9n9BiZx9cbe/0M3kqDpOTm2wzj13wdDUxDPjfjloWIJaquZzWE1cYTAHpjOH3rcTnXQdpEfS/SQ==}
+    dev: true
+
   /@types/uuid/9.0.1:
     resolution: {integrity: sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==}
     dev: true
@@ -3455,6 +3463,10 @@ packages:
     engines: {node: '>= 4'}
     dependencies:
       domelementtype: 2.3.0
+    dev: true
+
+  /domino/2.1.6:
+    resolution: {integrity: sha512-3VdM/SXBZX2omc9JF9nOPCtDaYQ67BGp5CoLpIQlO2KCAPETs8TcDHacF26jXadGbvUteZzRTeos2fhID5+ucQ==}
     dev: true
 
   /domutils/2.8.0:
@@ -8401,6 +8413,12 @@ packages:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
     dependencies:
       safe-buffer: 5.2.1
+    dev: true
+
+  /turndown/7.1.2:
+    resolution: {integrity: sha512-ntI9R7fcUKjqBP6QU8rBK2Ehyt8LAzt3UBT9JR9tgo6GtuKvyUzpayWmeMKJw1DPdXzktvtIT8m2mVXz+bL/Qg==}
+    dependencies:
+      domino: 2.1.6
     dev: true
 
   /tweetnacl/0.14.5:

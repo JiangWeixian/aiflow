@@ -154,6 +154,11 @@ a {
   --blue12: hsl(206, 98%, 95.8%);
 }
 
+.dark {
+  position: absolute;
+  z-index: 50;
+}
+
 .raycast {
   [cmdk-overlay] {
     background-color: hsla(0, 0%, 11%, 0.6);

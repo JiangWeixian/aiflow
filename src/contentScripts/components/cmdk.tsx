@@ -8,10 +8,11 @@ import { sendMessage } from 'webext-bridge'
 // more about this bugs: https://github.com/whatwg/html/issues/833 and https://github.com/theKashey/react-focus-lock/issues/188
 import FocusLock from 'react-focus-lock'
 import { Input } from 'mayumi/input'
+import TurndownService from 'turndown'
 
 import { useBearStore } from '~/logic/store'
 import type { ASK_CHATGPT_PAGE } from '~/logic/constants'
-import { ASK_CHATGPT, ASK_CHATGPT_WITH, CONFIG_PAGE, OPENAI_API_KEY, TRANSLATE_WITH } from '~/logic/constants'
+import { ASK_CHATGPT, ASK_CHATGPT_WITH, CONFIG_PAGE, OPENAI_API_KEY, SUMMARY_WITH, TRANSLATE_WITH } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ReactComponent as Trash } from '~/components/icons/trash.svg'
@@ -28,6 +29,8 @@ interface ItemProps {
 }
 
 type Pages = 'home' | typeof ASK_CHATGPT_PAGE | typeof CONFIG_PAGE
+
+const turndownService = new TurndownService()
 
 // Trigger ⌘j
 export function CMDK() {
@@ -74,7 +77,7 @@ export function CMDK() {
 
   // trigger on item select
   const handleValueSelect: ItemProps['onSelect'] = useCallback(async (value: string, params) => {
-    console.log('handleValueSelect', value)
+    console.log('handleValueSelect', value, params)
     // change pages..
     if (value.endsWith('-page')) {
       setPages(prev => [...prev, value] as Pages[])
@@ -89,10 +92,14 @@ export function CMDK() {
     }
     // Should send all parent message?
     if (value === TRANSLATE_WITH) {
-      console.log(TRANSLATE_WITH, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH })
       const data = await sendMessage(ASK_CHATGPT, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH }, 'background')
       upsertConventions(TRANSLATE_WITH, data.message)
       setOpen(false)
+    }
+    if (value === SUMMARY_WITH) {
+      // TODO: logic
+      turndownService.remove(['script', 'nav', 'next-route-announcer'])
+      console.log(turndownService.turndown(document.body))
     }
   }, [upsertConventions])
   // Toggle the menu when ⌘j is pressed
@@ -223,6 +230,11 @@ function Home({ onSelect, searchInputValue }: ItemProps & {
           <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
           Tranasplate
         </Item>
+        {/* TODO: Change Icon */}
+        <Item isCommand={true} value={SUMMARY_WITH}>
+          <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
+          Summary
+        </Item>
       </Command.Group>
     </>
   )
@@ -289,7 +301,7 @@ function SubCommand({
   const [, setInputValue] = useState<string>()
   const subCommandinputRef = useRef<HTMLInputElement | null>(null)
 
-  const hasSubCommand = selectedValue === ASK_CHATGPT_WITH || selectedValue === TRANSLATE_WITH
+  const hasSubCommand = selectedValue !== 'home'
 
   useEffect(() => {
     function listener(e: KeyboardEvent) {
@@ -349,6 +361,7 @@ function SubCommand({
               <Command.Group heading={selectedValue?.toUpperCase()}>
                 {selectedValue === ASK_CHATGPT_WITH && <AskGPTSubCommands onSelect={onSelect} />}
                 {selectedValue === TRANSLATE_WITH && <TranslateSubCommands onSelect={onSelect} />}
+                {selectedValue === SUMMARY_WITH && <SummarySubCommands onSelect={onSelect} />}
               </Command.Group>
             </Command.List>
             <Command.Input autoFocus={true} onValueChange={setInputValue} ref={subCommandinputRef} placeholder="Search for actions..." />
@@ -391,6 +404,19 @@ function TranslateSubCommands({ onSelect }: ItemProps) {
         onSelect(TRANSLATE_WITH, { text: search })
       }} value={search || '...'} shortcut="⌘ ↵">
         <span className="truncate">{search || '...'}</span>
+      </SubItem>
+    </>
+  )
+}
+
+function SummarySubCommands({ onSelect }: ItemProps) {
+  const { search } = useCommandState(state => state)
+  return (
+    <>
+      <SubItem onSelect={() => {
+        onSelect(SUMMARY_WITH, { text: search })
+      }} value={search || '...'} shortcut="⌘ ↵">
+        <span className="truncate">{'Summary full page'}</span>
       </SubItem>
     </>
   )
