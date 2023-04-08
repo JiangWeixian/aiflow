@@ -14,11 +14,11 @@
 - Setup `pnpm i & pnpm run build`
 - Load extension in `chrome` extension page
 
-Then, add your `openai-api-key`
+Then, add your [`Openai Api Key`](https://platform.openai.com/overview)
 
 1. Open commander with `command + k`
 2. Type `config`
-3. Add your `openai-api-key` from `openai` account page.
+3. Add your [`Openai Api Key`](https://platform.openai.com/overview) from `openai` account page.
 
 ### command `ask-gpt`
 
