@@ -29,6 +29,7 @@ interface ItemProps {
 
 type Pages = 'home' | typeof ASK_CHATGPT_PAGE | typeof CONFIG_PAGE
 
+// Trigger ⌘j
 export function CMDK() {
   // const { resolvedTheme: theme } = useTheme()
   // which command
@@ -93,10 +94,10 @@ export function CMDK() {
       setOpen(false)
     }
   }, [upsertConventions])
-  // Toggle the menu when ⌘K is pressed
+  // Toggle the menu when ⌘j is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && e.metaKey) {
+      if (e.key === 'j' && e.metaKey) {
         setOpen(open => !open)
         updateChatOpen(false)
       }
