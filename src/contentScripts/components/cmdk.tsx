@@ -99,6 +99,10 @@ export function CMDK() {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'j' && e.metaKey) {
         setOpen(open => !open)
+        // Always pop confitg page when modal open/close
+        if (activePage === 'config-page') {
+          popPage()
+        }
         updateChatOpen(false)
       }
 
@@ -111,7 +115,9 @@ export function CMDK() {
 
     document.addEventListener('keydown', down)
     return () => document.removeEventListener('keydown', down)
-  }, [updateChatOpen])
+  }, [updateChatOpen, activePage, popPage])
+
+  const shouldDisplayInput = activePage === 'home'
 
   return (
     <>
@@ -134,29 +140,31 @@ export function CMDK() {
                     </div>
                   ))}
                 </div>
-                <Command.Input
-                  ref={inputRef}
-                  onValueChange={(v) => {
-                    inputValueRef.current = v
-                  }}
-                  autoFocus={true}
-                  placeholder="Search for commands..."
-                  onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === 'Enter') {
-                      bounce()
-                    }
-                    if (activePage === 'home' || inputValueRef.current?.length) {
-                      return
-                    }
-                    if (e.key === 'Backspace') {
-                      e.preventDefault()
-                      popPage()
-                      bounce()
-                    }
-                  }}
-                />
-                <hr cmdk-raycast-loader="" />
-                <Command.List ref={listRef}>
+                {shouldDisplayInput && (
+                  <Command.Input
+                    ref={inputRef}
+                    onValueChange={(v) => {
+                      inputValueRef.current = v
+                    }}
+                    autoFocus={true}
+                    placeholder="Search for commands..."
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter') {
+                        bounce()
+                      }
+                      if (activePage === 'home' || inputValueRef.current?.length) {
+                        return
+                      }
+                      if (e.key === 'Backspace') {
+                        e.preventDefault()
+                        popPage()
+                        bounce()
+                      }
+                    }}
+                  />
+                )}
+                {shouldDisplayInput && <hr cmdk-raycast-loader="" />}
+                <Command.List className="min-h-[400px]" ref={listRef}>
                   {activePage === 'home' && <Home onSelect={handleValueSelect} searchInputValue={searchInputValue} />}
                   {activePage === CONFIG_PAGE && <Options />}
                   {/* {activePage === ASK_CHATGPT_PAGE && <AskGPTs onSelect={handleValueSelect} /> } */}
@@ -228,7 +236,7 @@ function Options() {
       })
   }, [])
   return (
-    <div className="flex flex-col items-center justify-center p-4">
+    <div className="flex flex-col items-center justify-center p-4 pt-8">
       <Input
         light={true}
         className="w-1/2"
