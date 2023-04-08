@@ -4,8 +4,9 @@ import browser from 'webextension-polyfill'
 import { ChatGPTAPI } from '~/logic/openai'
 import { ASK_CHATGPT, GET_CURRENT_TAB, OPENAI_API_KEY } from '~/logic/constants'
 import { createMessageStore } from '~/logic/openai/message-store'
-import { createUserConfig } from '~/logic/store/browser'
+import { createUserConfig } from '~/logic/store/user-config'
 import { systemMessages } from '~/logic/prompts/constants'
+import { formatters } from '~/logic/prompts/utils'
 
 const isDev = process.env.NODE_ENV !== 'production'
 
@@ -78,11 +79,12 @@ onMessage(ASK_CHATGPT, async (message) => {
       }
     }
     const { client: chatClient } = await createClient()
-    const parentMessageId = await store.get(action)
-    const resp = await chatClient.sendMessage(data.text, {
+    // Looks like we don't need to ask with conventions context
+    // const parentMessageId = await store.get(action)
+    const resp = await chatClient.sendMessage(formatters[action](data.text), {
       stream: true,
       systemMessage: systemMessages[action] ?? undefined,
-      parentMessageId,
+      // parentMessageId,
     })
     // save conventions into local browser storage
     await store.set(action, resp.id)

@@ -5,7 +5,7 @@ import { compact } from 'lodash-es'
 import browsers from 'webextension-polyfill'
 
 import type { ChatMessage } from '~/logic/openai/types'
-import { getConvention } from '~/logic/storage'
+import { getConvention } from '~/logic/conventions'
 
 interface BearState {
   bears: number

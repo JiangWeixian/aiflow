@@ -18,8 +18,7 @@ import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ReactComponent as Trash } from '~/components/icons/trash.svg'
 import { ReactComponent as OptionsIcon } from '~/components/icons/options.svg'
 import { createMessageStore } from '~/logic/openai/message-store'
-import { createUserConfig } from '~/logic/store/browser'
-import { formatTranslatePrompt } from '~/logic/prompts/utils'
+import { createUserConfig } from '~/logic/store/user-config'
 
 const messageStore = createMessageStore()
 const userConfigStore = createUserConfig()
@@ -29,8 +28,6 @@ interface ItemProps {
 }
 
 type Pages = 'home' | typeof ASK_CHATGPT_PAGE | typeof CONFIG_PAGE
-
-const turndownService = new TurndownService()
 
 // Trigger ⌘j
 export function CMDK() {
@@ -92,14 +89,33 @@ export function CMDK() {
     }
     // Should send all parent message?
     if (value === TRANSLATE_WITH) {
-      const data = await sendMessage(ASK_CHATGPT, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH }, 'background')
+      const data = await sendMessage(ASK_CHATGPT, { text: params?.text, action: TRANSLATE_WITH }, 'background')
       upsertConventions(TRANSLATE_WITH, data.message)
       setOpen(false)
     }
     if (value === SUMMARY_WITH) {
       // TODO: logic
-      turndownService.remove(['script', 'nav', 'next-route-announcer'])
-      console.log(turndownService.turndown(document.body))
+      const turndownService = new TurndownService({
+        blankReplacement: () => '',
+      })
+      turndownService.remove([
+        'script',
+        'link',
+        'nav',
+        'footer',
+        'img',
+        'iframe',
+        'audio',
+        'canvas',
+        'figure',
+        'ins',
+        'del',
+        'next-route-announcer',
+      ] as any[])
+      const text = turndownService.turndown(document.body)
+      const data = await sendMessage(ASK_CHATGPT, { text, action: SUMMARY_WITH }, 'background')
+      upsertConventions(SUMMARY_WITH, data.message)
+      setOpen(false)
     }
   }, [upsertConventions])
   // Toggle the menu when ⌘j is pressed
@@ -230,9 +246,8 @@ function Home({ onSelect, searchInputValue }: ItemProps & {
           <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
           Tranasplate
         </Item>
-        {/* TODO: Change Icon */}
         <Item isCommand={true} value={SUMMARY_WITH}>
-          <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
+          <i className="gg-notes/0.8 text-mayumi-gray-1200" />
           Summary
         </Item>
       </Command.Group>
