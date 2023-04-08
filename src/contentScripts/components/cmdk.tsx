@@ -89,6 +89,7 @@ export function CMDK() {
     }
     // Should send all parent message?
     if (value === TRANSLATE_WITH) {
+      console.log(TRANSLATE_WITH, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH })
       const data = await sendMessage(ASK_CHATGPT, { text: formatTranslatePrompt(params?.text), action: TRANSLATE_WITH }, 'background')
       upsertConventions(TRANSLATE_WITH, data.message)
       setOpen(false)

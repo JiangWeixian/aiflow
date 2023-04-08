@@ -48,6 +48,7 @@ const createClient = async () => {
   }
   const key = isDev ? process.env.OPENAI_API_KEY : await userConfigStore.get(OPENAI_API_KEY)
   if (!key) {
+    console.error('No API key found')
     return { client, key }
   }
   client = new ChatGPTAPI(
