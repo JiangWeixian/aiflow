@@ -133,7 +133,7 @@ export const useBearStore = create<BearState>()(
               ...state.conventions,
               [conventionId]: compact(conventions),
             },
-          }))
+          }), false, 'upsertConventions')
         },
         updateChatOpen: (open) => {
           set(() => ({

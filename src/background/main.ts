@@ -79,12 +79,12 @@ onMessage(ASK_CHATGPT, async (message) => {
       }
     }
     const { client: chatClient } = await createClient()
-    // Looks like we don't need to ask with conventions context
-    // const parentMessageId = await store.get(action)
+    // NOTE: Not sure previous messages will need more tokens
+    const parentMessageId = await store.get(action)
     const resp = await chatClient.sendMessage(formatters[action](data.text), {
       stream: true,
       systemMessage: systemMessages[action] ?? undefined,
-      // parentMessageId,
+      parentMessageId,
     })
     // save conventions into local browser storage
     await store.set(action, resp.id)
