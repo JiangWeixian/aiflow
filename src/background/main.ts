@@ -4,7 +4,7 @@ import browser from 'webextension-polyfill'
 import { ChatGPTAPI } from '~/logic/openai'
 import { ASK_CHATGPT, GET_CURRENT_TAB, OPENAI_API_KEY } from '~/logic/constants'
 import { createMessageStore } from '~/logic/openai/message-store'
-import { createUserConfig } from '~/logic/store/user-config'
+import { userConfig } from '~/logic/store/user-config'
 import { systemMessages } from '~/logic/prompts/constants'
 import { formatters } from '~/logic/prompts/utils'
 
@@ -42,12 +42,11 @@ browser.tabs.onActivated.addListener(async ({ tabId }) => {
 })
 
 let client: ChatGPTAPI
-const userConfigStore = createUserConfig()
 const createClient = async () => {
   if (client) {
     return { client, key: undefined }
   }
-  const key = isDev ? process.env.OPENAI_API_KEY : await userConfigStore.get(OPENAI_API_KEY)
+  const key = isDev ? process.env.OPENAI_API_KEY : (await userConfig())[OPENAI_API_KEY]
   if (!key) {
     console.error('No API key found')
     return { client, key }
@@ -73,7 +72,8 @@ onMessage(ASK_CHATGPT, async (message) => {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
     const action = data.action
     console.log(action, 'in background', tabs, message)
-    if (!data.text) {
+    const resolvedTest = await formatters[action](data.text)
+    if (!resolvedTest || !data.text) {
       return {
         message: undefined,
       }
@@ -81,7 +81,7 @@ onMessage(ASK_CHATGPT, async (message) => {
     const { client: chatClient } = await createClient()
     // NOTE: Not sure previous messages will need more tokens
     const parentMessageId = await store.get(action)
-    const resp = await chatClient.sendMessage(formatters[action](data.text), {
+    const resp = await chatClient.sendMessage(resolvedTest, {
       stream: true,
       systemMessage: systemMessages[action] ?? undefined,
       parentMessageId,

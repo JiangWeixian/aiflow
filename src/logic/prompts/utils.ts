@@ -1,15 +1,16 @@
 import type { ACTIONS } from '../constants'
-import { ASK_CHATGPT_WITH, SUMMARY_WITH, TRANSLATE_WITH } from '../constants'
+import { ACTIONS_OPTIONS, ASK_CHATGPT_WITH, SUMMARY_WITH, TRANSLATE_WITH } from '../constants'
+import { userConfig } from '~/logic/store/user-config'
 
-const formatTranslatePrompt = (text?: string) => {
+const formatTranslatePrompt = async (text?: string) => {
   if (!text) {
     return ''
   }
-  // TODO: lang should be configurable
-  return `Translate the following text to English: ${text}`
+  const translateOptions = (await userConfig())[ACTIONS_OPTIONS]?.[TRANSLATE_WITH]
+  return `Translate the following text to ${translateOptions?.lang ?? 'English'}: ${text}`
 }
 
-const formatSummaryPrompt = (text?: string) => {
+const formatSummaryPrompt = async (text?: string) => {
   if (!text) {
     return ''
   }
@@ -17,8 +18,8 @@ const formatSummaryPrompt = (text?: string) => {
   return `Summary the following text into 200 words: ${text}`
 }
 
-export const formatters: Record<ACTIONS, (text?: string) => string> = {
-  [ASK_CHATGPT_WITH]: (text?: string) => text ?? '',
+export const formatters: Record<ACTIONS, (text?: string) => Promise<string>> = {
+  [ASK_CHATGPT_WITH]: async (text?: string) => text ?? '',
   [TRANSLATE_WITH]: formatTranslatePrompt,
   [SUMMARY_WITH]: formatSummaryPrompt,
 }

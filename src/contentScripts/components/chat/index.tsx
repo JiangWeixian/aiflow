@@ -3,14 +3,15 @@ import { a, config, useSpring } from '@react-spring/web'
 import clsx from 'clsx'
 
 import type { ChatMessage } from '~/logic/openai/types'
-import { useBearStore } from '~/logic/store'
+import { useBearStore, useCMDKStore } from '~/logic/store'
 
 const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
   return (
     <div className={clsx('flex flex-col gap-2 p-4 text-sm text-mayumi-gray-1100', {
       'bg-mayumi-gray-200': message.role === 'user',
       'bg-mayumi-gray-300': message.role === 'assistant',
-    })}>
+    })}
+    >
       <div className="flex-0 text-mayumi-gray-1200">
         { message.role === 'user' ? 'You:' : 'Assistant:' }
       </div>
@@ -24,7 +25,8 @@ const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
 // FIXME: Wrap it with popover content, prevent scrolling on body
 export const Chat = () => {
   // const [input, setInput] = useState('')
-  const { conventions, toggleChatOpen, chatOpen } = useBearStore()
+  const { toggleChatOpen, chatOpen } = useCMDKStore()
+  const { conventions } = useBearStore()
   const [activeConventionId, setActiveConventionId] = useState<string | null>(null)
   const props = useSpring({
     h: chatOpen ? 600 : 0,
@@ -64,7 +66,7 @@ export const Chat = () => {
               'border-b': chatOpen,
             },
           )}
-        >
+      >
         <h2 className="rounded-md bg-transparent px-3 py-1 text-sm font-bold uppercase">
           Chat
         </h2>

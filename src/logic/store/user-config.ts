@@ -1,22 +1,20 @@
-import browser from 'webextension-polyfill'
-
-interface UserConfig {
+import type { ACTIONS_OPTIONS, TRANSLATE_WITH } from '../constants'
+import browsers from 'webextension-polyfill'
+export interface UserConfig {
   // required
   OPENAI_API_KEY: string
+  /**
+   * @description Map action-name object actions
+   */
+  [ACTIONS_OPTIONS]: {
+    [TRANSLATE_WITH]: {
+      lang: string
+    }
+  }
 }
 
-// Will sync between different browsers
-export const createUserConfig = () => {
-  return {
-    set: async (config: UserConfig) => {
-      await browser.storage.sync.set(config)
-      const result = await browser.storage.sync.get()
-      console.log(result)
-    },
-    get: async (key: string) => {
-      const result = await browser.storage.sync.get(key)
-      console.log('Value currently is', result)
-      return result[key]
-    },
-  }
+// zustand persist getState still use old state, so we need to use storage to get the latest state
+export const userConfig = async (): Promise<UserConfig> => {
+  const result = await browsers.storage.sync.get(['user-config-store'])
+  return JSON.parse(result['user-config-store']).state
 }

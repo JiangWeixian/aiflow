@@ -18,8 +18,11 @@ export default defineConfig(() => ({
   sourcemap: isDev ? 'inline' : false,
   define: {
     __DEV__: JSON.stringify(isDev),
+    'import.meta.env': JSON.stringify({
+      MODE: isDev ? 'development' : 'production',
+    }),
     'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
-    'process.env.OPENAI_API_KEY': isDev ? JSON.stringify(envs.OPENAI_API_KEY) : "",
+    'process.env.OPENAI_API_KEY': isDev ? JSON.stringify(envs.OPENAI_API_KEY) : JSON.stringify(""),
   },
   platform: 'browser',
   minifyWhitespace: !isDev,
