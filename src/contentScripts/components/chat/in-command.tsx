@@ -57,7 +57,7 @@ export const ChatInCommand = (props: ChatInCommandProps) => {
   const { conventions } = useBearStore()
   const [activeConventionId] = useState<string | null>(props.action)
 
-  const messages: Partial<ChatMessage>[] = conventions[activeConventionId!]
+  const messages: Partial<ChatMessage>[] = conventions[activeConventionId!] ?? []
   function scrollIntoView() {
     const lastIndex = (listRef.current?.children.length ?? 1) - 1
     if (listRef.current?.children[lastIndex] && messagesEndRef.current) {
@@ -68,7 +68,7 @@ export const ChatInCommand = (props: ChatInCommandProps) => {
     }
   }
   useBearStore.subscribe((current, prev) => {
-    if (prev.conventions[activeConventionId!].length !== current.conventions[activeConventionId!].length) {
+    if (prev.conventions[activeConventionId!]?.length !== current.conventions[activeConventionId!]?.length) {
       scrollIntoView()
     }
   })

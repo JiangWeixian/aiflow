@@ -171,7 +171,7 @@ export function CMDK() {
           >
             <FocusLock
               autoFocus={true}
-              shards={[inputRef]}
+              shards={[inputRef.current!]}
               group="cmdk"
             >
               <Command
@@ -366,6 +366,7 @@ interface ChatInputProps {
 
 // FIXME: unable to clear input value
 function ChatInput(props: ChatInputProps) {
+  const [value, setValue] = useState('')
   const inputRef = useRef<HTMLInputElement | null>(null)
   const inputValueRef = useRef<string>('')
   const handleSendMessageToChat = (e: React.KeyboardEvent) => {
@@ -375,17 +376,21 @@ function ChatInput(props: ChatInputProps) {
       props.onSendMessage(action, { text: inputValueRef.current })
       inputValueRef.current = ''
       inputRef.current!.value = ''
+      setValue('')
       console.log('ChatInput', inputRef.current)
     }
   }
   return (
-    <Command.Input
+    <Input
       tabIndex={1}
+      value={value}
+      ghost={true}
       placeholder="Type your message..."
       key="cmdk-ai-input"
       ref={inputRef}
-      onValueChange={(v) => {
-        inputValueRef.current = v
+      onChange={(e) => {
+        setValue(e.target.value)
+        inputValueRef.current = e.target.value
       }}
       onKeyDown={handleSendMessageToChat}
     />

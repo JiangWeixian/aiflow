@@ -9,12 +9,10 @@ import { getConvention } from '~/logic/conventions'
 import type { UserConfig } from '~/logic/store/user-config'
 
 interface BearState {
-  bears: number
   /**
    * Group by action
    */
   conventions: Record<string, Partial<ChatMessage>[]>
-  increase: (by: number) => void
   upsertConventions: (action: string, msg: ChatMessage) => void
   clear: () => void
 }
@@ -24,9 +22,7 @@ export const useBearStore = create<BearState>()(
   logger(
     persist(
       set => ({
-        bears: 0,
         conventions: {},
-        increase: by => set(state => ({ bears: state.bears + by })),
         upsertConventions: async (action: string, msg) => {
           const conventions = await getConvention(msg.id)
           return set(state => ({
@@ -36,7 +32,7 @@ export const useBearStore = create<BearState>()(
             },
           }), false, 'upsertConventions')
         },
-        clear: () => set({ bears: 0, conventions: {} }),
+        clear: () => set({ conventions: {} }),
       }),
       {
         name: 'aiflow-message-store',
