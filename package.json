@@ -48,7 +48,7 @@
     "prepare": "husky install"
   },
   "lint-staged": {
-    "**/**/*.{js}": ["esno check-key.ts"],
+    "**/**/*.js": ["esno check-key.ts"],
     "**/**/*.{js,ts,tsx,vue,json}": ["eslint --fix"]
   },
   "dependencies": {
