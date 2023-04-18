@@ -1,4 +1,5 @@
 import type React from 'react'
+import type { RefObject } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
@@ -6,7 +7,7 @@ import { Command, useCommandState } from 'cmdk'
 import { sendMessage } from 'webext-bridge'
 // autofocus not working on shadow-dom, this package make it work
 // more about this bugs: https://github.com/whatwg/html/issues/833 and https://github.com/theKashey/react-focus-lock/issues/188
-import FocusLock from 'react-focus-lock'
+// import FocusLock from 'react-focus-lock'
 import { Input } from 'mayumi/input'
 import TurndownService from 'turndown'
 
@@ -30,6 +31,15 @@ interface ItemProps {
 }
 
 type Pages = PAGES
+
+const focusIfNeed = (ref: RefObject<any>) => {
+  const timer = setInterval(() => {
+    if (ref.current) {
+      ref.current.focus()
+      clearInterval(timer)
+    }
+  }, 10)
+}
 
 // Trigger ⌘j
 export function CMDK() {
@@ -154,6 +164,7 @@ export function CMDK() {
     document.addEventListener('keydown', down)
     return () => document.removeEventListener('keydown', down)
   }, [updateChatOpen, activePage, popPage, toggle, setOpen])
+  focusIfNeed(inputRef)
 
   const shouldDisplayInput = activePage === HOME_PAGE
   const shouldDisplayChatInput = activePage === TRANSLATE_WITH_PAGE || activePage === ASK_CHATGPT_PAGE
@@ -169,93 +180,91 @@ export function CMDK() {
             cmdk-dialog=""
             className="z-50 shadow-lg"
           >
-            <FocusLock
-              autoFocus={true}
-              shards={[inputRef.current!]}
-              group="cmdk"
+            {/* <FocusLock> */}
+            <Command
+              ref={commandRef}
+              value={value}
+              onValueChange={handleValueChange}
+              loop={true}
             >
-              <Command
-                ref={commandRef}
-                value={value}
-                onValueChange={handleValueChange}
-                loop={true}
+              <div cmdk-raycast-top-shine="" />
+              <div className="flex items-center justify-between px-3 pt-1">
+                <div className="flex items-center justify-start gap-2">
+                  {pages.map(p => (
+                    <div
+                      key={p}
+                      className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase text-mayumi-gray-1100 shadow"
+                    >
+                      {convertPageToAction(p)}
+                    </div>
+                  ))}
+                </div>
+                {shouldDisplayExtraOptions && <ExtraOptionsSelector container={containerRef} />}
+              </div>
+              <Command.Input
+                ref={(v) => {
+                  inputRef.current = v
+                }}
+                onValueChange={(v) => {
+                  inputValueRef.current = v
+                }}
+                key="cmdk-input"
+                autoFocus={true}
+                tabIndex={1}
+                className={clsx({ hidden: !shouldDisplayInput })}
+                placeholder="Search for commands..."
+                onKeyDown={(e: React.KeyboardEvent) => {
+                  if (e.key === 'Enter') {
+                    bounce()
+                  }
+                  if (activePage === HOME_PAGE || inputValueRef.current?.length) {
+                    return
+                  }
+                  if (e.key === 'Backspace') {
+                    e.preventDefault()
+                    popPage()
+                    bounce()
+                  }
+                }}
+              />
+              {shouldDisplayInput && <hr cmdk-raycast-loader="" />}
+              <Command.List
+                className="min-h-[400px]"
+                ref={listRef}
               >
-                <div cmdk-raycast-top-shine="" />
-                <div className="flex items-center justify-between px-3 pt-1">
-                  <div className="flex items-center justify-start gap-2">
-                    {pages.map(p => (
-                      <div
-                        key={p}
-                        className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase text-mayumi-gray-1100 shadow"
-                      >
-                        {convertPageToAction(p)}
-                      </div>
-                    ))}
-                  </div>
-                  {shouldDisplayExtraOptions && <ExtraOptionsSelector container={containerRef} />}
-                </div>
-                <Command.Input
-                  ref={inputRef}
-                  onValueChange={(v) => {
-                    inputValueRef.current = v
-                  }}
-                  key="cmdk-input"
-                  autoFocus={true}
-                  tabIndex={1}
-                  className={clsx({ hidden: !shouldDisplayInput })}
-                  placeholder="Search for commands..."
-                  onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === 'Enter') {
-                      bounce()
-                    }
-                    if (activePage === HOME_PAGE || inputValueRef.current?.length) {
-                      return
-                    }
-                    if (e.key === 'Backspace') {
-                      e.preventDefault()
-                      popPage()
-                      bounce()
-                    }
-                  }}
-                />
-                {shouldDisplayInput && <hr cmdk-raycast-loader="" />}
-                <Command.List
-                  className="min-h-[400px]"
-                  ref={listRef}
-                >
-                  {activePage === HOME_PAGE && <Home onSelect={handleValueSelect} />}
-                  {activePage === CONFIG_PAGE && <Options />}
-                  {shouldDisplayChatInput && <Chat page={activePage} />}
-                </Command.List>
-                <div
-                  cmdk-raycast-footer=""
-                  className="justify-end"
-                >
-                  {shouldDisplayChatInput && (
-                    <ChatInput
-                      page={activePage}
-                      onSendMessage={handleValueSelect}
-                    />
-                  )}
-                  {shouldDisplayChatInput && loading && <i className="spinner gg-spinner/0.75" />}
-                  <button
-                    tabIndex={2}
-                    cmdk-raycast-open-trigger=""
-                  >
-                    <kbd>↵</kbd>
-                  </button>
-
-                  <hr />
-
-                  <SubCommand
-                    listRef={listRef}
-                    selectedValue={value}
-                    inputRef={inputRef}
-                    onSelect={handleValueSelect}
+                {activePage === HOME_PAGE && <Home onSelect={handleValueSelect} />}
+                {activePage === CONFIG_PAGE && <Options />}
+                {shouldDisplayChatInput && <Chat page={activePage} />}
+              </Command.List>
+              <div
+                cmdk-raycast-footer=""
+                className="justify-end"
+              >
+                {shouldDisplayChatInput && (
+                  <ChatInput
+                    page={activePage}
+                    onSendMessage={handleValueSelect}
                   />
-                </div>
-              </Command>
-            </FocusLock>
+                )}
+                {shouldDisplayChatInput && loading && <i className="spinner gg-spinner/0.75" />}
+                <button
+                  tabIndex={2}
+                  cmdk-raycast-open-trigger=""
+                >
+                  <kbd>↵</kbd>
+                </button>
+
+                <hr />
+
+                <SubCommand
+                  listRef={listRef}
+                  selectedValue={value}
+                  inputRef={inputRef}
+                  onSelect={handleValueSelect}
+                />
+              </div>
+            </Command>
+            {/* </FocusLock> */}
           </RadixDialog.Content>
         </RadixDialog.Portal>
       </RadixDialog.Root>
@@ -364,7 +373,6 @@ interface ChatInputProps {
   page: Pages
 }
 
-// FIXME: unable to clear input value
 function ChatInput(props: ChatInputProps) {
   const [value, setValue] = useState('')
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -420,10 +428,6 @@ function SubCommand({
         e.preventDefault()
         hasSubCommand && toggleSubCommand()
       }
-
-      if (e.key === 'Escape') {
-        setSubCommandOpen(false)
-      }
     }
 
     document.addEventListener('keydown', listener)
@@ -477,7 +481,12 @@ function SubCommand({
         className="raycast-submenu outline-none"
         sideOffset={16}
         alignOffset={0}
+        onEscapeKeyDown={() => {
+          setSubCommandOpen(false)
+        }}
         onCloseAutoFocus={(e) => {
+          // prevent focus trigger after close
+          e.preventDefault()
           inputRef?.current?.focus()
         }}
       >

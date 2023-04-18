@@ -49,9 +49,6 @@ export const ExtraOptionsSelector = (props: SelectorProps) => {
         className="inline-flex items-center justify-center gap-[5px] rounded bg-gray2 px-3 py-1 text-xs text-mayumi-gray-1200 outline-none hover:bg-mayumi-gray-300 focus:shadow-[0_0_0_1px] focus:shadow-gray7 data-[placeholder]:text-mayumi-gray-900"
         aria-label="lang"
         autoFocus={false}
-        onBlur={() => {
-          console.log('onblur')
-        }}
         // Should larger than command.input tabindex, make sure commond.input can be auto focused before lang selector
         tabIndex={2}
       >
