@@ -5,8 +5,8 @@ import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
 import { Command, useCommandState } from 'cmdk'
 import { sendMessage } from 'webext-bridge'
-// autofocus not working on shadow-dom, this package make it work
 // more about this bugs: https://github.com/whatwg/html/issues/833 and https://github.com/theKashey/react-focus-lock/issues/188
+// focus lock used auto focus active element
 // import FocusLock from 'react-focus-lock'
 import { Input } from 'mayumi/input'
 import TurndownService from 'turndown'
@@ -233,7 +233,7 @@ export function CMDK() {
                 ref={listRef}
               >
                 {activePage === HOME_PAGE && <Home onSelect={handleValueSelect} />}
-                {activePage === CONFIG_PAGE && <Options />}
+                {activePage === CONFIG_PAGE && <Options onExit={popPage} />}
                 {shouldDisplayChatInput && <Chat page={activePage} />}
               </Command.List>
               <div
@@ -337,8 +337,12 @@ function Home({ onSelect }: ItemProps) {
   )
 }
 
+interface OptionsProps {
+  onExit: () => void
+}
+
 // Options page
-function Options() {
+function Options(props: OptionsProps) {
   const config = useUserConfig()
   return (
     <div className="flex flex-col items-center justify-center p-4 pt-8">
@@ -349,6 +353,7 @@ function Options() {
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             config.set({ [OPENAI_API_KEY]: e.currentTarget.value })
+            props.onExit?.()
           }
           return false
         }}
@@ -375,10 +380,12 @@ interface ChatInputProps {
 
 function ChatInput(props: ChatInputProps) {
   const [value, setValue] = useState('')
+  // 输入法标识
+  const invokeInputMethodEditor = useRef(false)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const inputValueRef = useRef<string>('')
   const handleSendMessageToChat = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && invokeInputMethodEditor.current === false) {
       e.preventDefault()
       const action = convertPageToAction(props.page)
       props.onSendMessage(action, { text: inputValueRef.current })
@@ -395,6 +402,12 @@ function ChatInput(props: ChatInputProps) {
       ghost={true}
       placeholder="Type your message..."
       key="cmdk-ai-input"
+      onCompositionStart={() => {
+        invokeInputMethodEditor.current = true
+      }}
+      onCompositionEnd={() => {
+        invokeInputMethodEditor.current = false
+      }}
       ref={inputRef}
       onChange={(e) => {
         setValue(e.target.value)

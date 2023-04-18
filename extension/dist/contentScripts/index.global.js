@@ -26359,7 +26359,9 @@ function YD() {
               ref: l,
               children: [u === Xr && /* @__PURE__ */ B(XD, {
                 onSelect: b
-              }), u === Du && /* @__PURE__ */ B(ZD, {}), S && /* @__PURE__ */ B(JD, {
+              }), u === Du && /* @__PURE__ */ B(ZD, {
+                onExit: p
+              }), S && /* @__PURE__ */ B(JD, {
                 page: u
               })]
             }), /* @__PURE__ */ pe("div", {
@@ -26440,17 +26442,20 @@ function XD({
     })]
   });
 }
-function ZD() {
-  const e = mk();
+function ZD(e) {
+  const t = mk();
   return /* @__PURE__ */ B("div", {
     className: "flex flex-col items-center justify-center p-4 pt-8",
     children: /* @__PURE__ */ B(Qm, {
       light: !0,
       className: "w-1/2",
-      value: e.OPENAI_API_KEY,
-      onKeyDown: (t) => (t.key === "Enter" && e.set({
-        [VT]: t.currentTarget.value
-      }), !1)
+      value: t.OPENAI_API_KEY,
+      onKeyDown: (n) => {
+        var r;
+        return n.key === "Enter" && (t.set({
+          [VT]: n.currentTarget.value
+        }), (r = e.onExit) == null || r.call(e)), !1;
+      }
     })
   });
 }
@@ -26460,23 +26465,29 @@ function JD(e) {
   });
 }
 function eL(e) {
-  const [t, n] = m.exports.useState(""), r = m.exports.useRef(null), o = m.exports.useRef("");
+  const [t, n] = m.exports.useState(""), r = m.exports.useRef(!1), o = m.exports.useRef(null), i = m.exports.useRef("");
   return /* @__PURE__ */ B(Qm, {
     tabIndex: 1,
     value: t,
     ghost: !0,
     placeholder: "Type your message...",
-    ref: r,
-    onChange: (l) => {
-      n(l.target.value), o.current = l.target.value;
+    onCompositionStart: () => {
+      r.current = !0;
     },
-    onKeyDown: (l) => {
-      if (l.key === "Enter") {
-        l.preventDefault();
-        const a = mg(e.page);
-        e.onSendMessage(a, {
-          text: o.current
-        }), o.current = "", r.current.value = "", n(""), console.log("ChatInput", r.current);
+    onCompositionEnd: () => {
+      r.current = !1;
+    },
+    ref: o,
+    onChange: (a) => {
+      n(a.target.value), i.current = a.target.value;
+    },
+    onKeyDown: (a) => {
+      if (a.key === "Enter" && r.current === !1) {
+        a.preventDefault();
+        const s = mg(e.page);
+        e.onSendMessage(s, {
+          text: i.current
+        }), i.current = "", o.current.value = "", n(""), console.log("ChatInput", o.current);
       }
     }
   }, "cmdk-ai-input");
