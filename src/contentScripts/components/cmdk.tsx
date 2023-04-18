@@ -1,5 +1,4 @@
 import type React from 'react'
-import type { RefObject } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
@@ -22,6 +21,7 @@ import { ReactComponent as OptionsIcon } from '~/components/icons/options.svg'
 import { createMessageStore } from '~/logic/openai/message-store'
 import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
 import { convertPageToAction } from '~/logic/normalize'
+import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
 import clsx from 'clsx'
 
 const messageStore = createMessageStore()
@@ -31,15 +31,6 @@ interface ItemProps {
 }
 
 type Pages = PAGES
-
-const focusIfNeed = (ref: RefObject<any>) => {
-  const timer = setInterval(() => {
-    if (ref.current) {
-      ref.current.focus()
-      clearInterval(timer)
-    }
-  }, 10)
-}
 
 // Trigger ⌘j
 export function CMDK() {
@@ -63,6 +54,7 @@ export function CMDK() {
       x.splice(-1, 1)
       return x
     })
+    focusManager.callHook('command-input')
   }, [])
 
   function bounce() {
@@ -164,7 +156,7 @@ export function CMDK() {
     document.addEventListener('keydown', down)
     return () => document.removeEventListener('keydown', down)
   }, [updateChatOpen, activePage, popPage, toggle, setOpen])
-  focusIfNeed(inputRef)
+  focusIfNeed(inputRef, { name: 'command-input' })
 
   const shouldDisplayInput = activePage === HOME_PAGE
   const shouldDisplayChatInput = activePage === TRANSLATE_WITH_PAGE || activePage === ASK_CHATGPT_PAGE
@@ -395,6 +387,7 @@ function ChatInput(props: ChatInputProps) {
       console.log('ChatInput', inputRef.current)
     }
   }
+  focusIfNeed(inputRef, { name: 'chat-input' })
   return (
     <Input
       tabIndex={1}
