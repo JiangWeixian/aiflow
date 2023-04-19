@@ -15,7 +15,6 @@
 
 ![interface](https://user-images.githubusercontent.com/6839576/231208205-f25644bf-a874-466a-b35b-01d26721b310.png)
 
-- Setup `pnpm i & pnpm run build`
 - Load extension in `chrome` extension page
 
 type `config`
@@ -32,7 +31,5 @@ Then, add your [`Openai Api Key`](https://platform.openai.com/overview)
 
 ![translate](https://user-images.githubusercontent.com/6839576/231209172-cd6bb738-43c1-40b1-93cd-b047e028e2dc.png)
 
-1. Open commander with <kbd>⌘</kbd><kbd>j</kbd>
-2. Type `translate...`
-3. Open sub-commander with <kbd>⌘</kbd><kbd>m</kbd>
-4. Type your **questions** or just ask `ChatGPT` with value in browser's `search`
+1. Type `translate...`
+2. Presss <kbd>enter</kbd> or Open commander with <kbd>⌘</kbd><kbd>m</kbd>(not ready yet!)
