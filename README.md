@@ -11,9 +11,9 @@
 
 ## usage
 
-Load **extension dir** in `chrome` extension page
-
-<kbd>⌘</kbd><kbd>j</kbd>
+1. Clone this repo.
+2. Load **extension dir** in `chrome` extension page
+3. Invoke with <kbd>⌘</kbd><kbd>j</kbd>
 
 ![interface](https://user-images.githubusercontent.com/6839576/231208205-f25644bf-a874-466a-b35b-01d26721b310.png)
 
