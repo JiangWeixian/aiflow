@@ -2,30 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
-import { convertMdToHtml } from '~/logic/md'
 
 import { useBearStore } from '~/logic/store'
 import type { ChatMessage } from '~/logic/openai/types'
-
-interface MarkdownContentProps {
-  content?: string
-}
-
-const useMd = ({ content }: MarkdownContentProps) => {
-  const [html, setHtml] = useState('')
-  useEffect(() => {
-    convertMdToHtml(content)
-      .then((html) => {
-        setHtml(html)
-      })
-  }, [content])
-  return html
-}
-
-const MarkdownContent = (props: MarkdownContentProps) => {
-  const html = useMd(props)
-  return <div className="prose prose-sm prose-invert" dangerouslySetInnerHTML={{ __html: html }} />
-}
+import { MarkdownContent } from '~/components/md'
 
 const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
   return (

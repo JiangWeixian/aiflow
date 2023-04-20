@@ -4,6 +4,7 @@ import clsx from 'clsx'
 
 import type { ChatMessage } from '~/logic/openai/types'
 import { useBearStore, useCMDKStore } from '~/logic/store'
+import { MarkdownContent } from '~/components/md'
 
 const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
   return (
@@ -16,7 +17,7 @@ const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
         { message.role === 'user' ? 'You:' : 'Assistant:' }
       </div>
       <div className="flex-1">
-        {message?.text}
+        <MarkdownContent content={message.text} />
       </div>
     </div>
   )
@@ -24,7 +25,6 @@ const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
 
 // FIXME: Wrap it with popover content, prevent scrolling on body
 export const Chat = () => {
-  // const [input, setInput] = useState('')
   const { toggleChatOpen, chatOpen } = useCMDKStore()
   const { conventions } = useBearStore()
   const [activeConventionId, setActiveConventionId] = useState<string | null>(null)
@@ -35,19 +35,6 @@ export const Chat = () => {
     config: config.default,
   })
 
-  // const sendMessage = () => {
-  //   if (input) {
-  //     const message: Message = {
-  //       content: input,
-  //       sender: 'me',
-  //       timestamp: Date.now(),
-  //     }
-  //     setMessages([...messages, message])
-  //     setInput('')
-  //   }
-  // }
-
-  console.log(conventions)
   const conventionIds = Object.keys(conventions)
   const controlledActiveConventionId = activeConventionId || conventionIds[0]
   const messages: Partial<ChatMessage>[] = !controlledActiveConventionId ? [] : conventions[controlledActiveConventionId]
@@ -103,14 +90,6 @@ export const Chat = () => {
           ))}
         </div>
       </a.div>
-      {/* <div className="input">
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-        />
-        <button onClick={sendMessage}>Send</button>
-      </div> */}
     </div>
   )
 }

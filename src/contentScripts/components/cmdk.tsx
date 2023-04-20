@@ -9,6 +9,7 @@ import { sendMessage } from 'webext-bridge'
 // import FocusLock from 'react-focus-lock'
 import { Input } from 'mayumi/input'
 import TurndownService from 'turndown'
+import clsx from 'clsx'
 
 import { useBearStore, useCMDKStore, useUserConfig } from '~/logic/store'
 import type { PAGES } from '~/logic/constants'
@@ -17,12 +18,12 @@ import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ExtraOptionsSelector } from '~/components/select'
 import { ReactComponent as Trash } from '~/components/icons/trash.svg'
+import { ReactComponent as ReadMe } from '~/components/icons/readme.svg'
 import { ReactComponent as OptionsIcon } from '~/components/icons/options.svg'
 import { createMessageStore } from '~/logic/openai/message-store'
 import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
 import { convertPageToAction } from '~/logic/normalize'
 import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
-import clsx from 'clsx'
 
 const messageStore = createMessageStore()
 
@@ -273,6 +274,7 @@ export function CMDK() {
 // Command list
 function Home({ onSelect }: ItemProps) {
   const { clear } = useBearStore()
+  const { updateChatOpen, setOpen } = useCMDKStore()
   return (
     <>
       <Command.Empty>No results found.</Command.Empty>
@@ -282,6 +284,17 @@ function Home({ onSelect }: ItemProps) {
           <i className="gg-add/0.8 text-mayumi-gray-1200" />
           Create workflow
         </Item> */}
+        <Item
+          isCommand={true}
+          value="open-convenstions-history"
+          onSelect={() => {
+            setOpen(false)
+            updateChatOpen(true)
+          }}
+        >
+          <ReadMe />
+          Open Conventions
+        </Item>
         <Item
           isCommand={true}
           value="clear-storage"
