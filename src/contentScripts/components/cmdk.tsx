@@ -293,7 +293,7 @@ function Home({ onSelect }: ItemProps) {
           }}
         >
           <ReadMe />
-          Open Conventions
+          View History
         </Item>
         <Item
           isCommand={true}

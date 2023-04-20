@@ -40,7 +40,7 @@ export const Chat = () => {
   const messages: Partial<ChatMessage>[] = !controlledActiveConventionId ? [] : conventions[controlledActiveConventionId]
 
   return (
-    <div className="aiflow-chat leading-1em fixed right-0 bottom-0 z-40 m-5 flex max-w-[500px] flex-col overflow-hidden rounded-lg border border-mayumi-gray-700 bg-mayumi-gray-200 font-sans shadow-lg">
+    <a.div style={{ opacity: props.opacity }} className="aiflow-chat leading-1em fixed right-0 bottom-0 z-40 m-5 flex max-w-[500px] flex-col overflow-hidden rounded-lg border border-mayumi-gray-700 bg-mayumi-gray-200 font-sans shadow-lg">
       <div
         onClick={() => {
           toggleChatOpen()
@@ -55,11 +55,11 @@ export const Chat = () => {
           )}
       >
         <h2 className="rounded-md bg-transparent px-3 py-1 text-sm font-bold uppercase">
-          Chat
+          History
         </h2>
         { chatOpen && <kbd className="flex h-5 items-center justify-center rounded bg-mayumi-gray-300 px-2 font-sans text-xs uppercase text-mayumi-gray-1100">esc</kbd> }
       </div>
-      <a.div style={{ height: props.h, opacity: props.opacity, width: props.w }} className="flex">
+      <a.div style={{ height: props.h, width: props.w }} className="flex">
         {/* conventions chats list */}
         <div className="grid min-w-[150px] grid-flow-row auto-rows-max border-r border-mayumi-gray-700 p-2 font-semibold">
           {conventionIds.map((id) => {
@@ -90,6 +90,6 @@ export const Chat = () => {
           ))}
         </div>
       </a.div>
-    </div>
+    </a.div>
   )
 }
