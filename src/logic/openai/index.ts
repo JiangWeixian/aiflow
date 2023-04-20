@@ -144,6 +144,7 @@ export class ChatGPTAPI {
       messageId = uuidv4(),
       timeoutMs,
       onProgress,
+      onBeforeSendMessage,
       stream = !!onProgress,
       completionParams,
     } = opts
@@ -162,6 +163,7 @@ export class ChatGPTAPI {
       parentMessageId,
       text,
     }
+    onBeforeSendMessage?.(message)
     await this._upsertMessage(message)
 
     const { messages, maxTokens, numTokens } = await this._buildMessages(
@@ -352,7 +354,7 @@ export class ChatGPTAPI {
         },
       ])
       : messages
-    let numTokens = 0
+    const numTokens = 0
 
     do {
       const prompt = nextMessages

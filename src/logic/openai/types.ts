@@ -41,6 +41,7 @@ export interface SendMessageOptions {
   systemMessage?: string
   timeoutMs?: number
   onProgress?: (partialResponse: ChatMessage) => void
+  onBeforeSendMessage?: (partialResponse: ChatMessage) => void
   abortSignal?: AbortSignal
   completionParams?: Partial<
     Omit<openai.CreateChatCompletionRequest, 'messages' | 'n' | 'stream'>

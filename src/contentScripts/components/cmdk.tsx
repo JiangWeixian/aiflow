@@ -8,7 +8,6 @@ import { sendMessage } from 'webext-bridge'
 // focus lock used auto focus active element
 // import FocusLock from 'react-focus-lock'
 import { Input } from 'mayumi/input'
-import TurndownService from 'turndown'
 import clsx from 'clsx'
 
 import { useBearStore, useCMDKStore, useUserConfig } from '~/logic/store'
@@ -24,6 +23,7 @@ import { createMessageStore } from '~/logic/openai/message-store'
 import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
 import { convertPageToAction } from '~/logic/normalize'
 import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
+import { convertHtmlToMd } from '~/logic/md'
 
 const messageStore = createMessageStore()
 
@@ -77,6 +77,7 @@ export function CMDK() {
   }, [])
 
   // trigger on item select
+  // comunication with background
   const handleValueSelect: ItemProps['onSelect'] = useCallback(async (value: string, params) => {
     console.log('handleValueSelect', value, params)
     // change pages..
@@ -84,40 +85,20 @@ export function CMDK() {
       setPages(prev => [...prev, value] as Pages[])
       return
     }
-    // comunication with background
     if (value === ASK_CHATGPT_WITH) {
       setLoading(true)
-      const data = await sendMessage(ASK_CHATGPT, { text: params?.text, action: ASK_CHATGPT_WITH }, 'background')
-      upsertConventions(ASK_CHATGPT_WITH, data.message)
+      await sendMessage(ASK_CHATGPT, { text: params?.text, action: ASK_CHATGPT_WITH }, 'background')
       setLoading(false)
     }
     // Should send all parent message?
     if (value === TRANSLATE_WITH) {
       setLoading(true)
-      const data = await sendMessage(ASK_CHATGPT, { text: params?.text, action: TRANSLATE_WITH }, 'background')
-      upsertConventions(TRANSLATE_WITH, data.message)
+      await sendMessage(ASK_CHATGPT, { text: params?.text, action: TRANSLATE_WITH }, 'background')
+      // upsertConventions(TRANSLATE_WITH, data.message)
       setLoading(false)
     }
     if (value === SUMMARY_WITH) {
-      // TODO: mv to utils
-      const turndownService = new TurndownService({
-        blankReplacement: () => '',
-      })
-      turndownService.remove([
-        'script',
-        'link',
-        'nav',
-        'footer',
-        'img',
-        'iframe',
-        'audio',
-        'canvas',
-        'figure',
-        'ins',
-        'del',
-        'next-route-announcer',
-      ] as any[])
-      const text = turndownService.turndown(document.body)
+      const text = await convertHtmlToMd(document.body)
       const data = await sendMessage(ASK_CHATGPT, { text, action: SUMMARY_WITH }, 'background')
       upsertConventions(SUMMARY_WITH, data.message)
     }

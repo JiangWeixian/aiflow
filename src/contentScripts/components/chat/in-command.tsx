@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
+import { onMessage } from 'webext-bridge'
 
 import { useBearStore } from '~/logic/store'
 import type { ChatMessage } from '~/logic/openai/types'
 import { MarkdownContent } from '~/components/md'
+import { ASK_CHATGPT } from '~/logic/constants'
 
-const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
+const MessageItem = memo(({ message }: { message: Partial<ChatMessage> }) => {
   return (
     <div className={clsx('flex flex-col gap-2 p-4 text-sm text-mayumi-gray-1100', {
       'bg-mayumi-gray-200': message.role === 'user',
@@ -22,7 +24,9 @@ const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
       </div>
     </div>
   )
-}
+}, (p, n) => p.message.text === n.message.text)
+
+MessageItem.displayName = 'MessageItem'
 
 interface ChatInCommandProps {
   /**
@@ -34,7 +38,7 @@ interface ChatInCommandProps {
 export const ChatInCommand = (props: ChatInCommandProps) => {
   const listRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { conventions } = useBearStore()
+  const { conventions, updateOrUpsertConventions } = useBearStore()
   const [activeConventionId] = useState<string | null>(props.action)
 
   const messages: Partial<ChatMessage>[] = conventions[activeConventionId!] ?? []
@@ -54,15 +58,19 @@ export const ChatInCommand = (props: ChatInCommandProps) => {
   })
 
   useEffect(() => {
+    onMessage(ASK_CHATGPT, (message) => {
+      const { data } = message
+      updateOrUpsertConventions(data.action, data.message)
+    })
     scrollIntoView()
-  }, [])
+  }, [updateOrUpsertConventions])
   return (
     <div className="aiflow-chat-in-command flex-1 bg-mayumi-gray-200">
       <ScrollArea.Root className="pointer-events-auto h-[400px] overflow-hidden pt-2">
         <ScrollArea.Viewport className="h-full w-full rounded">
           <div ref={listRef}>
-            {messages.map((message, index) => (
-              <MessageItem key={index} message={message} />
+            {messages.map(message => (
+              <MessageItem key={message.id} message={message} />
             ))}
             <div ref={messagesEndRef} />
           </div>

@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { compact } from 'lodash-es'
+// import { compact } from 'lodash-es'
 import { local, sync } from '@jiangweixian1994/zustand-middlwares/storage'
 import { logger } from '@jiangweixian1994/zustand-middlwares/devtools'
 
 import type { ChatMessage } from '~/logic/openai/types'
-import { getConvention } from '~/logic/conventions'
+// import { getConvention } from '~/logic/conventions'
 import type { UserConfig } from '~/logic/store/user-config'
 
 interface BearState {
@@ -14,6 +14,7 @@ interface BearState {
    */
   conventions: Record<string, Partial<ChatMessage>[]>
   upsertConventions: (action: string, msg: ChatMessage) => void
+  updateOrUpsertConventions: (action: string, msg: ChatMessage) => void
   clear: () => void
 }
 
@@ -24,13 +25,41 @@ export const useBearStore = create<BearState>()(
       set => ({
         conventions: {},
         upsertConventions: async (action: string, msg) => {
-          const conventions = await getConvention(msg.id)
           return set(state => ({
             conventions: {
               ...state.conventions,
-              [action]: compact(conventions),
+              [action]: state.conventions[action].concat(msg),
             },
           }), false, 'upsertConventions')
+        },
+        updateOrUpsertConventions: async (action: string, msg) => {
+          return set((state) => {
+            let conventions = state.conventions[action] ?? []
+            const latest = conventions[conventions.length - 1]
+            if (latest?.id !== msg.id) {
+              return {
+                conventions: {
+                  ...state.conventions,
+                  [action]: conventions.concat(msg),
+                },
+              }
+            }
+            conventions = conventions.map((item) => {
+              if (item.id === msg.id) {
+                return {
+                  ...item,
+                  ...msg,
+                }
+              }
+              return item
+            })
+            return {
+              conventions: {
+                ...state.conventions,
+                [action]: conventions,
+              },
+            }
+          }, false, 'updateOrUpsertConventions')
         },
         clear: () => set({ conventions: {} }),
       }),

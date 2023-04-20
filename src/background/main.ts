@@ -1,6 +1,7 @@
 import { onMessage, sendMessage } from 'webext-bridge'
 import type { Tabs } from 'webextension-polyfill'
 import browser from 'webextension-polyfill'
+
 import { ChatGPTAPI } from '~/logic/openai'
 import { ASK_CHATGPT, GET_CURRENT_TAB, OPENAI_API_KEY } from '~/logic/constants'
 import { createMessageStore } from '~/logic/openai/message-store'
@@ -70,6 +71,7 @@ onMessage(ASK_CHATGPT, async (message) => {
   try {
     const { data } = message
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
+    const tabId = tabs[0].id
     const action = data.action
     console.log(action, 'in background', tabs, message)
     const resolvedTest = await formatters[action](data.text)
@@ -85,9 +87,15 @@ onMessage(ASK_CHATGPT, async (message) => {
       stream: true,
       systemMessage: systemMessages[action] ?? undefined,
       parentMessageId,
+      async onBeforeSendMessage(userMessage) {
+        tabId && sendMessage(ASK_CHATGPT, { message: userMessage, action }, { context: 'content-script', tabId })
+      },
+      async onProgress(partialResponse) {
+        await store.set(action, partialResponse.id)
+        tabId && sendMessage(ASK_CHATGPT, { message: partialResponse, action }, { context: 'content-script', tabId })
+      },
     })
     // save conventions into local browser storage
-    await store.set(action, resp.id)
     await browser.notifications.create({
       type: 'basic',
       iconUrl: browser.runtime.getURL('assets/icon-512.png'),

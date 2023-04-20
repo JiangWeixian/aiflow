@@ -4,6 +4,7 @@ import remarkFrontmatter from 'remark-frontmatter'
 import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
+import TurndownService from 'turndown'
 
 export async function convertMdToHtml(content?: string) {
   if (!content) {
@@ -18,4 +19,26 @@ export async function convertMdToHtml(content?: string) {
     .process(content)
 
   return String(file)
+}
+
+export async function convertHtmlToMd(content: TurndownService.Node | string) {
+  const turndownService = new TurndownService({
+    blankReplacement: () => '',
+  })
+  turndownService.remove([
+    'script',
+    'link',
+    'nav',
+    'footer',
+    'img',
+    'iframe',
+    'audio',
+    'canvas',
+    'figure',
+    'ins',
+    'del',
+    'next-route-announcer',
+  ] as any[])
+  const text = turndownService.turndown(content)
+  return text
 }

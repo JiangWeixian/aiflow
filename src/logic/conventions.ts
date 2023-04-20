@@ -24,6 +24,7 @@ export const getConvention = async (id: string) => {
         role: parentMessageRole,
         text: parentMessage.text,
         name: parentMessage.name,
+        id: parentMessage.id,
       },
       ...nextMessages.slice(systemMessageOffset),
     ])
