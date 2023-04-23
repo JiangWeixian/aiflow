@@ -2,7 +2,7 @@ import type React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
-import { Command, useCommandState } from 'cmdk'
+import { Command } from 'cmdk'
 import { sendMessage } from 'webext-bridge'
 // more about this bugs: https://github.com/whatwg/html/issues/833 and https://github.com/theKashey/react-focus-lock/issues/188
 // focus lock used auto focus active element
@@ -127,7 +127,7 @@ export function CMDK() {
 
       // return to home page when press esc
       // focus command input
-      if (e.key === 'Escape' && activePage !== HOME_PAGE) {
+      if (e.key === 'Escape' && activePage !== HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
         popPage()
         // focus friendly
         focusManager.callHook('command-input')
@@ -153,7 +153,6 @@ export function CMDK() {
             cmdk-dialog=""
             className="z-50 shadow-lg"
           >
-            {/* <FocusLock> */}
             <Command
               ref={commandRef}
               value={value}
@@ -237,7 +236,6 @@ export function CMDK() {
                 />
               </div>
             </Command>
-            {/* </FocusLock> */}
           </RadixDialog.Content>
         </RadixDialog.Portal>
       </RadixDialog.Root>
@@ -547,9 +545,6 @@ function NonChatSubCommands(props: NonChatSubCommandsProps) {
   if (props.value === TRANSLATE_WITH_PAGE) {
     return <TranslateSubCommands onSelect={props.onSelect} />
   }
-  if (props.value === SUMMARY_WITH) {
-    <SummarySubCommands onSelect={props.onSelect} />
-  }
   return null
 }
 
@@ -600,23 +595,6 @@ function TranslateSubCommands({ onSelect }: ItemProps) {
         <span className="truncate">{'Translate full page'}</span>
       </SubItem> */}
       <CommanSubCommandItems page={TRANSLATE_WITH_PAGE} onSelect={onSelect} />
-    </>
-  )
-}
-
-function SummarySubCommands({ onSelect }: ItemProps) {
-  const { search } = useCommandState(state => state)
-  return (
-    <>
-      <SubItem
-        onSelect={() => {
-          onSelect(SUMMARY_WITH, { text: search })
-        }}
-        value={search || '...'}
-        shortcut="⌘ ↵"
-      >
-        <span className="truncate">{'Summary full page'}</span>
-      </SubItem>
     </>
   )
 }
