@@ -519,12 +519,14 @@ interface ChatSubCommandsProps {
 
 function ChatSubCommands({ page }: ChatSubCommandsProps) {
   const { newConvention } = useBearStore(state => state)
+  const { setSubCommandOpen } = useCMDKStore(state => state)
   return (
     <>
       <SubItem
         value="new-convention"
         onSelect={() => {
           newConvention(convertPageToAction(page))
+          setSubCommandOpen(false)
         }}
         shortcut="↵"
       >
