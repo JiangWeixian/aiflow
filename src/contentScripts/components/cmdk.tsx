@@ -47,7 +47,7 @@ export function CMDK() {
   const activePage = pages[pages.length - 1]
   const [loading, setLoading] = useState(false)
   const { upsertConventions } = useBearStore()
-  const { open, setOpen, toggle, updateChatOpen } = useCMDKStore()
+  const { open, setOpen, toggle, updateHistoryOpen, setIsChat } = useCMDKStore()
 
   const popPage = useCallback(() => {
     setPages((pages) => {
@@ -55,8 +55,9 @@ export function CMDK() {
       x.splice(-1, 1)
       return x
     })
+    setIsChat(false)
     focusManager.callHook('command-input')
-  }, [])
+  }, [setIsChat])
 
   function bounce() {
     if (commandRef.current) {
@@ -82,6 +83,7 @@ export function CMDK() {
     console.log('handleValueSelect', value, params)
     // change pages..
     if (value.endsWith('-page')) {
+      setIsChat(true)
       setPages(prev => [...prev, value] as Pages[])
       return
     }
@@ -103,7 +105,7 @@ export function CMDK() {
       upsertConventions(SUMMARY_WITH, data.message)
     }
     setValue('')
-  }, [upsertConventions])
+  }, [upsertConventions, setIsChat])
   // Toggle the menu when ⌘j is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -113,31 +115,28 @@ export function CMDK() {
         if (activePage === CONFIG_PAGE) {
           popPage()
         }
-        updateChatOpen(false)
+        updateHistoryOpen(false)
       }
 
       // close modal when press esc on home page
       if (e.key === 'Escape' && activePage === HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
         setOpen(false)
-        updateChatOpen(false)
+        updateHistoryOpen(false)
         return
       }
 
       // return to home page when press esc
       // focus command input
-      // FIXME: subcommand input will affect command input, exit subcommand panel unable focus command.input. maybe related to focus-lock
       if (e.key === 'Escape' && activePage !== HOME_PAGE) {
         popPage()
         // focus friendly
-        setTimeout(() => {
-          inputRef.current?.focus()
-        }, 100)
+        focusManager.callHook('command-input')
       }
     }
 
     document.addEventListener('keydown', down)
     return () => document.removeEventListener('keydown', down)
-  }, [updateChatOpen, activePage, popPage, toggle, setOpen])
+  }, [updateHistoryOpen, activePage, popPage, toggle, setOpen])
   focusIfNeed(inputRef, { name: 'command-input' })
 
   const shouldDisplayInput = activePage === HOME_PAGE
@@ -255,7 +254,7 @@ export function CMDK() {
 // Command list
 function Home({ onSelect }: ItemProps) {
   const { clear } = useBearStore()
-  const { updateChatOpen, setOpen } = useCMDKStore()
+  const { updateHistoryOpen, setOpen } = useCMDKStore()
   return (
     <>
       <Command.Empty>No results found.</Command.Empty>
@@ -270,7 +269,7 @@ function Home({ onSelect }: ItemProps) {
           value="open-convenstions-history"
           onSelect={() => {
             setOpen(false)
-            updateChatOpen(true)
+            updateHistoryOpen(true)
           }}
         >
           <ReadMe />
@@ -416,7 +415,7 @@ function SubCommand({
   listRef: React.RefObject<HTMLElement>
   selectedValue: string
 } & ItemProps) {
-  const { subCommandOpen, toggleSubCommand, setSubCommandOpen } = useCMDKStore()
+  const { subCommandOpen, toggleSubCommand, setSubCommandOpen, isChat } = useCMDKStore()
   const [, setInputValue] = useState<string>()
   const subCommandinputRef = useRef<HTMLInputElement | null>(null)
 
@@ -450,7 +449,10 @@ function SubCommand({
       el.style.overflow = ''
     }
   }, [subCommandOpen, listRef])
-  focusIfNeed(subCommandinputRef, { name: 'subcommand-input' })
+
+  if (subCommandOpen) {
+    focusIfNeed(subCommandinputRef, { name: 'subcommand-input' })
+  }
 
   return (
     <Popover.Root
@@ -497,10 +499,8 @@ function SubCommand({
         >
           <Command.List>
             <Command.Group heading={selectedValue?.toUpperCase()}>
-              <ChatSubCommands page={selectedValue as Pages} />
-              {/* {selectedValue === ASK_CHATGPT_WITH && <AskGPTSubCommands onSelect={onSelect} />} */}
-              {/* {selectedValue === TRANSLATE_WITH && <TranslateSubCommands onSelect={onSelect} />} */}
-              {/* {selectedValue === SUMMARY_WITH && <SummarySubCommands onSelect={onSelect} />} */}
+              {isChat && <ChatSubCommands page={selectedValue as Pages} />}
+              {!isChat && <NonChatSubCommands value={selectedValue} onSelect={onSelect} />}
             </Command.Group>
           </Command.List>
           <Command.Input
@@ -536,8 +536,44 @@ function ChatSubCommands({ page }: ChatSubCommandsProps) {
   )
 }
 
+interface NonChatSubCommandsProps extends ItemProps {
+  value: string
+}
+
+function NonChatSubCommands(props: NonChatSubCommandsProps) {
+  if (props.value === ASK_CHATGPT_PAGE) {
+    return <AskGPTSubCommands onSelect={props.onSelect} />
+  }
+  if (props.value === TRANSLATE_WITH_PAGE) {
+    return <TranslateSubCommands onSelect={props.onSelect} />
+  }
+  if (props.value === SUMMARY_WITH) {
+    <SummarySubCommands onSelect={props.onSelect} />
+  }
+  return null
+}
+
+interface CommanSubCommandItemsProps extends ItemProps {
+  page: Pages
+}
+
+function CommanSubCommandItems(props: CommanSubCommandItemsProps) {
+  const { setSubCommandOpen } = useCMDKStore()
+  return (
+    <SubItem
+      value="open-chat"
+      onSelect={() => {
+        setSubCommandOpen(false)
+        props.onSelect(props.page)
+      }}
+      shortcut="↵"
+    >
+      <span className="truncate">Open Chat</span>
+    </SubItem>
+  )
+}
+
 function AskGPTSubCommands({ onSelect }: ItemProps) {
-  const { search } = useCommandState(state => state)
   return (
     <>
       <SubItem
@@ -549,21 +585,12 @@ function AskGPTSubCommands({ onSelect }: ItemProps) {
       >
         <span className="truncate">{getSearchInputValue() ?? 'Search input'}</span>
       </SubItem>
-      <SubItem
-        onSelect={() => {
-          onSelect(ASK_CHATGPT_WITH, { text: search })
-        }}
-        value={search || '...'}
-        shortcut="⌘ ↵"
-      >
-        <span className="truncate">{search || '...'}</span>
-      </SubItem>
+      <CommanSubCommandItems page={ASK_CHATGPT_PAGE} onSelect={onSelect} />
     </>
   )
 }
 
 function TranslateSubCommands({ onSelect }: ItemProps) {
-  const { search } = useCommandState(state => state)
   return (
     <>
       {/* TODO: translate selected word */}
@@ -572,15 +599,7 @@ function TranslateSubCommands({ onSelect }: ItemProps) {
       }} shortcut="↵">
         <span className="truncate">{'Translate full page'}</span>
       </SubItem> */}
-      <SubItem
-        onSelect={() => {
-          onSelect(TRANSLATE_WITH, { text: search })
-        }}
-        value={search || '...'}
-        shortcut="⌘ ↵"
-      >
-        <span className="truncate">{search || '...'}</span>
-      </SubItem>
+      <CommanSubCommandItems page={TRANSLATE_WITH_PAGE} onSelect={onSelect} />
     </>
   )
 }

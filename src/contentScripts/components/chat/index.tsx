@@ -25,13 +25,13 @@ const MessageItem = ({ message }: { message: Partial<ChatMessage> }) => {
 
 // FIXME: Wrap it with popover content, prevent scrolling on body
 export const Chat = () => {
-  const { toggleChatOpen, chatOpen } = useCMDKStore()
+  const { toggleHistoryOpen, historyOpen } = useCMDKStore()
   const { conventions } = useBearStore()
   const [activeConventionId, setActiveConventionId] = useState<string | null>(null)
   const props = useSpring({
-    h: chatOpen ? 600 : 0,
-    w: chatOpen ? 500 : 150,
-    opacity: chatOpen ? 1 : 0,
+    h: historyOpen ? 600 : 0,
+    w: historyOpen ? 500 : 150,
+    opacity: historyOpen ? 1 : 0,
     config: config.default,
   })
 
@@ -43,21 +43,21 @@ export const Chat = () => {
     <a.div style={{ opacity: props.opacity }} className="aiflow-chat leading-1em fixed right-0 bottom-0 z-40 m-5 flex max-w-[500px] flex-col overflow-hidden rounded-lg border border-mayumi-gray-700 bg-mayumi-gray-200 font-sans shadow-lg">
       <div
         onClick={() => {
-          toggleChatOpen()
+          toggleHistoryOpen()
         }}
         className={
           clsx(
             'flex-0 flex cursor-pointer select-none items-center justify-between border-mayumi-gray-700 p-3 text-mayumi-gray-1100 hover:bg-mayumi-gray-400',
             {
-              'border-b-0': !chatOpen,
-              'border-b': chatOpen,
+              'border-b-0': !historyOpen,
+              'border-b': historyOpen,
             },
           )}
       >
         <h2 className="rounded-md bg-transparent px-3 py-1 text-sm font-bold uppercase">
           History
         </h2>
-        { chatOpen && <kbd className="flex h-5 items-center justify-center rounded bg-mayumi-gray-300 px-2 font-sans text-xs uppercase text-mayumi-gray-1100">esc</kbd> }
+        { historyOpen && <kbd className="flex h-5 items-center justify-center rounded bg-mayumi-gray-300 px-2 font-sans text-xs uppercase text-mayumi-gray-1100">esc</kbd> }
       </div>
       <a.div style={{ height: props.h, width: props.w }} className="flex">
         {/* conventions chats list */}

@@ -88,6 +88,8 @@ interface CMDKState {
    * @description control cmdk panel open or not
    */
   open: boolean
+  isChat: boolean
+  setIsChat: (isChat: boolean) => void
   toggle: () => void
   setOpen: (open: boolean) => void
   /**
@@ -96,17 +98,23 @@ interface CMDKState {
   subCommandOpen: boolean
   toggleSubCommand: () => void
   setSubCommandOpen: (open: boolean) => void
-  chatOpen: boolean
-  updateChatOpen: (open?: boolean) => void
-  toggleChatOpen: () => void
+  historyOpen: boolean
+  updateHistoryOpen: (open?: boolean) => void
+  toggleHistoryOpen: () => void
 }
 
 export const useCMDKStore = create<CMDKState>()(
   logger(
     set => ({
       open: false,
+      isChat: false,
       subCommandOpen: false,
-      chatOpen: false,
+      historyOpen: false,
+      setIsChat(isChat: boolean) {
+        set(() => ({
+          isChat,
+        }))
+      },
       toggle() {
         set(state => ({
           open: !state.open,
@@ -127,14 +135,14 @@ export const useCMDKStore = create<CMDKState>()(
           subCommandOpen: open,
         }))
       },
-      toggleChatOpen() {
+      toggleHistoryOpen() {
         set(state => ({
-          chatOpen: !state.chatOpen,
+          historyOpen: !state.historyOpen,
         }))
       },
-      updateChatOpen(open) {
+      updateHistoryOpen(open) {
         set(() => ({
-          chatOpen: !!open,
+          historyOpen: !!open,
         }))
       },
     }),
