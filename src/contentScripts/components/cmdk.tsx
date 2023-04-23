@@ -450,6 +450,7 @@ function SubCommand({
       el.style.overflow = ''
     }
   }, [subCommandOpen, listRef])
+  focusIfNeed(subCommandinputRef, { name: 'subcommand-input' })
 
   return (
     <Popover.Root
@@ -496,9 +497,10 @@ function SubCommand({
         >
           <Command.List>
             <Command.Group heading={selectedValue?.toUpperCase()}>
-              {selectedValue === ASK_CHATGPT_WITH && <AskGPTSubCommands onSelect={onSelect} />}
-              {selectedValue === TRANSLATE_WITH && <TranslateSubCommands onSelect={onSelect} />}
-              {selectedValue === SUMMARY_WITH && <SummarySubCommands onSelect={onSelect} />}
+              <ChatSubCommands page={selectedValue as Pages} />
+              {/* {selectedValue === ASK_CHATGPT_WITH && <AskGPTSubCommands onSelect={onSelect} />} */}
+              {/* {selectedValue === TRANSLATE_WITH && <TranslateSubCommands onSelect={onSelect} />} */}
+              {/* {selectedValue === SUMMARY_WITH && <SummarySubCommands onSelect={onSelect} />} */}
             </Command.Group>
           </Command.List>
           <Command.Input
@@ -510,6 +512,27 @@ function SubCommand({
         </Command>
       </Popover.Content>
     </Popover.Root>
+  )
+}
+
+interface ChatSubCommandsProps {
+  page: Pages
+}
+
+function ChatSubCommands({ page }: ChatSubCommandsProps) {
+  const { newConvention } = useBearStore(state => state)
+  return (
+    <>
+      <SubItem
+        value="new-convention"
+        onSelect={() => {
+          newConvention(convertPageToAction(page))
+        }}
+        shortcut="↵"
+      >
+        <span className="truncate">New Convention</span>
+      </SubItem>
+    </>
   )
 }
 

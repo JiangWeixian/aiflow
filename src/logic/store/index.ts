@@ -15,6 +15,7 @@ interface BearState {
   conventions: Record<string, Partial<ChatMessage>[]>
   upsertConventions: (action: string, msg: ChatMessage) => void
   updateOrUpsertConventions: (action: string, msg: ChatMessage) => void
+  newConvention: (action: string) => void
   clear: () => void
 }
 
@@ -24,6 +25,14 @@ export const useBearStore = create<BearState>()(
     persist(
       set => ({
         conventions: {},
+        newConvention: async (action) => {
+          return set(state => ({
+            conventions: {
+              ...state.conventions,
+              [action]: [],
+            },
+          }), false, 'newConvention')
+        },
         upsertConventions: async (action: string, msg) => {
           return set(state => ({
             conventions: {
