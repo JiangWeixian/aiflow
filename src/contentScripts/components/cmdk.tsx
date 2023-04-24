@@ -10,22 +10,22 @@ import { sendMessage } from 'webext-bridge'
 import { Input } from 'mayumi/input'
 import clsx from 'clsx'
 
+import { Item, SubItem } from './commands/common/item'
+import { HistoryCommand, HistorySubCommands } from './commands/history'
+import { StorageCommand, StorageSubCommands } from './commands/storage'
+import { OptionCommand, OptionSubCommands } from './commands/options'
+import { SummaryCommand, SummarySubCommands } from './commands/summary'
+
 import { useBearStore, useCMDKStore, useUserConfig } from '~/logic/store'
 import type { PAGES } from '~/logic/constants'
-import { ASK_CHATGPT, ASK_CHATGPT_PAGE, ASK_CHATGPT_WITH, CONFIG_PAGE, HOME_PAGE, OPENAI_API_KEY, SUMMARY_WITH, TRANSLATE_WITH, TRANSLATE_WITH_PAGE } from '~/logic/constants'
+import { ASK_CHATGPT, ASK_CHATGPT_PAGE, ASK_CHATGPT_WITH, CONFIG_PAGE, HOME_PAGE, OPENAI_API_KEY, TRANSLATE_WITH, TRANSLATE_WITH_PAGE, actions, pages } from '~/logic/constants'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ExtraOptionsSelector } from '~/components/select'
-import { ReactComponent as Trash } from '~/components/icons/trash.svg'
-import { ReactComponent as ReadMe } from '~/components/icons/readme.svg'
-import { ReactComponent as OptionsIcon } from '~/components/icons/options.svg'
-import { createMessageStore } from '~/logic/openai/message-store'
 import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
 import { convertPageToAction } from '~/logic/normalize'
 import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
 import { convertHtmlToMd } from '~/logic/md'
-
-const messageStore = createMessageStore()
 
 interface ItemProps {
   onSelect: (type: string, params?: { text?: string }) => void
@@ -99,10 +99,10 @@ export function CMDK() {
       // upsertConventions(TRANSLATE_WITH, data.message)
       setLoading(false)
     }
-    if (value === SUMMARY_WITH) {
+    if (value === actions.SUMMARY_WITH) {
       const text = await convertHtmlToMd(document.body)
-      const data = await sendMessage(ASK_CHATGPT, { text, action: SUMMARY_WITH }, 'background')
-      upsertConventions(SUMMARY_WITH, data.message)
+      const data = await sendMessage(ASK_CHATGPT, { text, action: actions.SUMMARY_WITH }, 'background')
+      upsertConventions(actions.SUMMARY_WITH, data.message)
     }
     setValue('')
   }, [upsertConventions, setIsChat])
@@ -118,10 +118,13 @@ export function CMDK() {
         updateHistoryOpen(false)
       }
 
+      if (e.key === 'Escape') {
+        updateHistoryOpen(false)
+      }
+
       // close modal when press esc on home page
       if (e.key === 'Escape' && activePage === HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
         setOpen(false)
-        updateHistoryOpen(false)
         return
       }
 
@@ -251,8 +254,6 @@ export function CMDK() {
 // Main page
 // Command list
 function Home({ onSelect }: ItemProps) {
-  const { clear } = useBearStore()
-  const { updateHistoryOpen, setOpen } = useCMDKStore()
   return (
     <>
       <Command.Empty>No results found.</Command.Empty>
@@ -262,36 +263,9 @@ function Home({ onSelect }: ItemProps) {
           <i className="gg-add/0.8 text-mayumi-gray-1200" />
           Create workflow
         </Item> */}
-        <Item
-          isCommand={true}
-          value="open-convenstions-history"
-          onSelect={() => {
-            setOpen(false)
-            updateHistoryOpen(true)
-          }}
-        >
-          <ReadMe />
-          View History
-        </Item>
-        <Item
-          isCommand={true}
-          value="clear-storage"
-          onSelect={() => {
-            clear()
-            messageStore.clear()
-          }}
-        >
-          <Trash />
-          Clear Storage
-        </Item>
-        <Item
-          isCommand={true}
-          onSelect={() => onSelect(CONFIG_PAGE)}
-          value={CONFIG_PAGE}
-        >
-          <OptionsIcon />
-          Config
-        </Item>
+        <HistoryCommand />
+        <StorageCommand />
+        <OptionCommand onSelect={onSelect} />
         <Item
           isCommand={true}
           onSelect={() => onSelect(ASK_CHATGPT_PAGE)}
@@ -308,13 +282,7 @@ function Home({ onSelect }: ItemProps) {
           <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
           Tranasplate
         </Item>
-        <Item
-          isCommand={true}
-          value={SUMMARY_WITH}
-        >
-          <i className="gg-notes/0.8 text-mayumi-gray-1200" />
-          Summary
-        </Item>
+        <SummaryCommand onSelect={onSelect} />
       </Command.Group>
     </>
   )
@@ -547,14 +515,26 @@ function NonChatSubCommands(props: NonChatSubCommandsProps) {
   if (props.value === TRANSLATE_WITH_PAGE) {
     return <TranslateSubCommands onSelect={props.onSelect} />
   }
+  if (props.value === actions.OPEN_HISTORY) {
+    return <HistorySubCommands />
+  }
+  if (props.value === actions.CLEAR_STORAGE) {
+    return <StorageSubCommands />
+  }
+  if (props.value === pages.CONFIG_PAGE) {
+    return <OptionSubCommands onSelect={props.onSelect} />
+  }
+  if (props.value === actions.SUMMARY_WITH) {
+    return <SummarySubCommands onSelect={props.onSelect} />
+  }
   return null
 }
 
-interface CommanSubCommandItemsProps extends ItemProps {
+interface CommonSubCommandItemsProps extends ItemProps {
   page: Pages
 }
 
-function CommanSubCommandItems(props: CommanSubCommandItemsProps) {
+function CommonSubCommandItems(props: CommonSubCommandItemsProps) {
   const { setSubCommandOpen } = useCMDKStore()
   return (
     <SubItem
@@ -582,7 +562,7 @@ function AskGPTSubCommands({ onSelect }: ItemProps) {
       >
         <span className="truncate">{getSearchInputValue() ?? 'Search input'}</span>
       </SubItem>
-      <CommanSubCommandItems page={ASK_CHATGPT_PAGE} onSelect={onSelect} />
+      <CommonSubCommandItems page={ASK_CHATGPT_PAGE} onSelect={onSelect} />
     </>
   )
 }
@@ -596,48 +576,7 @@ function TranslateSubCommands({ onSelect }: ItemProps) {
       }} shortcut="↵">
         <span className="truncate">{'Translate full page'}</span>
       </SubItem> */}
-      <CommanSubCommandItems page={TRANSLATE_WITH_PAGE} onSelect={onSelect} />
+      <CommonSubCommandItems page={TRANSLATE_WITH_PAGE} onSelect={onSelect} />
     </>
-  )
-}
-
-function Item({
-  children,
-  value,
-  isCommand = false,
-  onSelect,
-  disabled = false,
-}: {
-  children: React.ReactNode
-  value?: string
-  isCommand?: boolean
-  disabled?: boolean
-  onSelect?: (value: string) => void
-}) {
-  return (
-    <Command.Item
-      disabled={disabled}
-      value={value}
-      onSelect={onSelect}
-    >
-      {children}
-      <span cmdk-raycast-meta="">{isCommand ? 'Command' : 'Application'}</span>
-    </Command.Item>
-  )
-}
-
-function SubItem({ children, shortcut, value, onSelect }: { children: React.ReactNode; shortcut: string; value?: string } & ItemProps) {
-  return (
-    <Command.Item
-      value={value}
-      onSelect={onSelect}
-    >
-      {children}
-      <div cmdk-raycast-submenu-shortcuts="">
-        {shortcut.split(' ').map((key) => {
-          return <kbd key={key}>{key}</kbd>
-        })}
-      </div>
-    </Command.Item>
   )
 }
