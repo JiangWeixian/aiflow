@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-// import { compact } from 'lodash-es'
 import { local, sync } from '@jiangweixian1994/zustand-middlwares/storage'
 import { logger } from '@jiangweixian1994/zustand-middlwares/devtools'
 
@@ -34,12 +33,15 @@ export const useBearStore = create<BearState>()(
           }), false, 'newConvention')
         },
         upsertConventions: async (action: string, msg) => {
-          return set(state => ({
-            conventions: {
-              ...state.conventions,
-              [action]: state.conventions[action].concat(msg),
-            },
-          }), false, 'upsertConventions')
+          return set((state) => {
+            const conventions = state.conventions[action] ?? []
+            return {
+              conventions: {
+                ...state.conventions,
+                [action]: msg ? conventions.concat(msg) : conventions,
+              },
+            }
+          }, false, 'upsertConventions')
         },
         updateOrUpsertConventions: async (action: string, msg) => {
           return set((state) => {
@@ -49,7 +51,7 @@ export const useBearStore = create<BearState>()(
               return {
                 conventions: {
                   ...state.conventions,
-                  [action]: conventions.concat(msg),
+                  [action]: msg ? conventions.concat(msg) : conventions,
                 },
               }
             }

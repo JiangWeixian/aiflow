@@ -25,7 +25,6 @@ import { ExtraOptionsSelector } from '~/components/select'
 import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
 import { convertPageToAction } from '~/logic/normalize'
 import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
-import { convertHtmlToMd } from '~/logic/md'
 
 interface ItemProps {
   onSelect: (type: string, params?: { text?: string }) => void
@@ -96,11 +95,10 @@ export function CMDK() {
     if (value === TRANSLATE_WITH) {
       setLoading(true)
       await sendMessage(ASK_CHATGPT, { text: params?.text, action: TRANSLATE_WITH }, 'background')
-      // upsertConventions(TRANSLATE_WITH, data.message)
       setLoading(false)
     }
     if (value === actions.SUMMARY_WITH) {
-      const text = await convertHtmlToMd(document.body)
+      const text = document.body.textContent ?? ''
       const data = await sendMessage(ASK_CHATGPT, { text, action: actions.SUMMARY_WITH }, 'background')
       upsertConventions(actions.SUMMARY_WITH, data.message)
     }
