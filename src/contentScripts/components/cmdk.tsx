@@ -421,7 +421,7 @@ function SubCommand({
 
   useEffect(() => {
     function listener(e: KeyboardEvent) {
-      if (e.key === 'm' && e.metaKey) {
+      if (e.key === 'k' && e.metaKey) {
         e.preventDefault()
         hasSubCommand && toggleSubCommand()
       }
@@ -474,7 +474,7 @@ function SubCommand({
       >
         Actions
         <kbd>⌘</kbd>
-        <kbd>M</kbd>
+        <kbd>K</kbd>
       </Popover.Trigger>
       <Popover.Content
         side="top"
