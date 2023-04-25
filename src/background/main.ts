@@ -79,7 +79,7 @@ onMessage(ASK_CHATGPT, async (message) => {
     const tabId = tabs[0].id
     const action = data.action
     console.log(action, 'in background', tabs, message)
-    const resolvedTest = await formatters[action](data.text)
+    const resolvedTest = await formatters[action]?.(data.text)
     if (!resolvedTest || !data.text) {
       return {
         message: undefined,

@@ -16,7 +16,6 @@ export async function getManifest() {
   // can also be conditional based on your need
   const manifest: Manifest.WebExtensionManifest = {
     manifest_version: 3,
-    // @ts-expect-error -- use pkg displayName if available
     name: pkg.displayName || pkg.name,
     version: pkg.version,
     description: pkg.description,

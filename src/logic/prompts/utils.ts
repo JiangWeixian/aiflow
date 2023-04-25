@@ -21,10 +21,10 @@ const formatSummaryPrompt = async (text?: string) => {
     return ''
   }
   // TODO: number of words should be configurable
-  return `Summary the following text into 200 words: ${text}`
+  return `Summary the following text into 200 words: \n${text}`
 }
 
-export const formatters: Record<ACTIONS, (text?: string) => Promise<string>> = {
+export const formatters: Partial<Record<ACTIONS, (text?: string) => Promise<string>>> = {
   [ASK_CHATGPT_WITH]: async (text?: string) => text ?? '',
   [TRANSLATE_WITH]: formatTranslatePrompt,
   [SUMMARY_WITH]: formatSummaryPrompt,

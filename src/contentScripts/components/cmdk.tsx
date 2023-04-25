@@ -62,14 +62,13 @@ export function CMDK() {
   const commandRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const listRef = useRef(null)
-  const [pages, setPages] = useState<Pages[]>([HOME_PAGE])
-  const activePage = pages[pages.length - 1]
+  const [activePages, setActivePages] = useState<Pages[]>([HOME_PAGE])
+  const activePage = activePages[activePages.length - 1]
   const [loading, setLoading] = useState(false)
-  const { upsertConventions } = useBearStore()
   const { open, setOpen, toggle, updateHistoryOpen, setIsChat } = useCMDKStore()
 
   const popPage = useCallback(() => {
-    setPages((pages) => {
+    setActivePages((pages) => {
       const x = [...pages]
       x.splice(-1, 1)
       return x
@@ -103,7 +102,7 @@ export function CMDK() {
     // change pages..
     if (value.endsWith('-page')) {
       setIsChat(true)
-      setPages(prev => [...prev, value] as Pages[])
+      setActivePages(prev => [...prev, value] as Pages[])
       return
     }
     if (value === ASK_CHATGPT_WITH) {
@@ -118,12 +117,12 @@ export function CMDK() {
       setLoading(false)
     }
     if (value === actions.SUMMARY_WITH) {
-      const text = document.body.textContent ?? ''
-      const data = await sendMessage(ASK_CHATGPT, { text, action: actions.SUMMARY_WITH }, 'background')
-      upsertConventions(actions.SUMMARY_WITH, data.message)
+      setLoading(true)
+      await sendMessage(ASK_CHATGPT, { text: params?.text, action: actions.SUMMARY_WITH }, 'background')
+      setLoading(false)
     }
     setValue('')
-  }, [upsertConventions, setIsChat])
+  }, [setIsChat])
   // Toggle the menu when ⌘j is pressed
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -161,7 +160,7 @@ export function CMDK() {
   focusIfNeed(inputRef, { name: 'command-input' })
 
   const shouldDisplayInput = activePage === HOME_PAGE
-  const shouldDisplayChatInput = activePage === TRANSLATE_WITH_PAGE || activePage === ASK_CHATGPT_PAGE
+  const shouldDisplayChatInput = activePage === pages.TRANSLATE_WITH_PAGE || activePage === pages.ASK_CHATGPT_PAGE || activePage === pages.SUMMARY_WITH_PAGE
   const shouldDisplayExtraOptions = activePage === TRANSLATE_WITH_PAGE
 
   return (
@@ -183,10 +182,10 @@ export function CMDK() {
               <div cmdk-raycast-top-shine="" />
               <div className="flex items-center justify-between px-3 pt-1">
                 <div className="flex items-center justify-start gap-2">
-                  {pages.map(p => (
+                  {activePages.map(p => (
                     <div
                       key={p}
-                      className="bg-mayumi-gray-700 text-mayumi-gray-1100 rounded-md px-3 py-1 text-xs uppercase shadow"
+                      className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase text-mayumi-gray-1100 shadow"
                     >
                       {convertPageToAction(p)}
                     </div>
@@ -527,10 +526,10 @@ interface NonChatSubCommandsProps extends ItemProps {
 }
 
 function NonChatSubCommands(props: NonChatSubCommandsProps) {
-  if (props.value === ASK_CHATGPT_PAGE) {
+  if (props.value === pages.ASK_CHATGPT_PAGE) {
     return <AskGPTSubCommands onSelect={props.onSelect} />
   }
-  if (props.value === TRANSLATE_WITH_PAGE) {
+  if (props.value === pages.TRANSLATE_WITH_PAGE) {
     return <TranslateSubCommands onSelect={props.onSelect} />
   }
   if (props.value === actions.OPEN_HISTORY) {
@@ -542,7 +541,7 @@ function NonChatSubCommands(props: NonChatSubCommandsProps) {
   if (props.value === pages.CONFIG_PAGE) {
     return <OptionSubCommands onSelect={props.onSelect} />
   }
-  if (props.value === actions.SUMMARY_WITH) {
+  if (props.value === pages.SUMMARY_WITH_PAGE) {
     return <SummarySubCommands onSelect={props.onSelect} />
   }
   return null
