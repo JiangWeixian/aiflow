@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { sendMessage } from 'webext-bridge'
+import { onMessage, sendMessage } from 'webext-bridge'
 
 import { Item, SubItem } from './commands/common/item'
 import { HistoryCommand, HistorySubCommands } from './commands/history'
@@ -65,6 +65,7 @@ export function CMDK() {
   const [activePages, setActivePages] = useState<Pages[]>([HOME_PAGE])
   const activePage = activePages[activePages.length - 1]
   const [loading, setLoading] = useState(false)
+  const { updateOrUpsertConventions } = useBearStore()
   const { open, setOpen, toggle, updateHistoryOpen, setIsChat } = useCMDKStore()
 
   const popPage = useCallback(() => {
@@ -157,6 +158,14 @@ export function CMDK() {
     document.addEventListener('keydown', down)
     return () => document.removeEventListener('keydown', down)
   }, [updateHistoryOpen, activePage, popPage, toggle, setOpen])
+
+  useEffect(() => {
+    onMessage(ASK_CHATGPT, (message) => {
+      const { data } = message
+      updateOrUpsertConventions(data.action, data.message)
+    })
+  }, [updateOrUpsertConventions])
+
   focusIfNeed(inputRef, { name: 'command-input' })
 
   const shouldDisplayInput = activePage === HOME_PAGE

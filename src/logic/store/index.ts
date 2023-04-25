@@ -46,8 +46,8 @@ export const useBearStore = create<BearState>()(
         updateOrUpsertConventions: async (action: string, msg) => {
           return set((state) => {
             let conventions = state.conventions[action] ?? []
-            const latest = conventions[conventions.length - 1]
-            if (latest?.id !== msg.id) {
+            const found = conventions.find(item => msg.id === item.id)
+            if (!found) {
               return {
                 conventions: {
                   ...state.conventions,
