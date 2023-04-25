@@ -1,17 +1,18 @@
-import React from 'react'
 import * as Select from '@radix-ui/react-select'
-import type { SelectItemProps, SelectProps } from '@radix-ui/react-select'
 import classnames from 'clsx'
-
 import langs from 'lang-list/data/languages.json'
+import React from 'react'
+
 import { ACTIONS_OPTIONS, TRANSLATE_WITH } from '~/logic/constants'
 import { useUserConfig } from '~/logic/store'
+
+import type { SelectItemProps, SelectProps } from '@radix-ui/react-select'
 
 const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(({ children, className, ...props }, forwardedRef) => {
   return (
     <Select.Item
       className={classnames(
-        'relative flex h-[25px] select-none items-center rounded-[3px] pr-[35px] pl-[25px] text-[13px] leading-none text-mayumi-gray-1200 data-[disabled]:pointer-events-none data-[highlighted]:bg-mayumi-gray-400 data-[disabled]:text-mayumi-gray-800 data-[highlighted]:outline-none',
+        'text-mayumi-gray-1200 data-[highlighted]:bg-mayumi-gray-400 data-[disabled]:text-mayumi-gray-800 relative flex h-[25px] select-none items-center rounded-[3px] pr-[35px] pl-[25px] text-[13px] leading-none data-[disabled]:pointer-events-none data-[highlighted]:outline-none',
         className,
       )}
       {...props}
@@ -46,7 +47,7 @@ export const ExtraOptionsSelector = (props: SelectorProps) => {
       }}
     >
       <Select.Trigger
-        className="inline-flex items-center justify-center gap-[5px] rounded bg-gray2 px-3 py-1 text-xs text-mayumi-gray-1200 outline-none hover:bg-mayumi-gray-300 focus:shadow-[0_0_0_1px] focus:shadow-gray7 data-[placeholder]:text-mayumi-gray-900"
+        className="bg-gray2 text-mayumi-gray-1200 hover:bg-mayumi-gray-300 focus:shadow-gray7 data-[placeholder]:text-mayumi-gray-900 inline-flex items-center justify-center gap-[5px] rounded px-3 py-1 text-xs outline-none focus:shadow-[0_0_0_1px]"
         aria-label="lang"
         autoFocus={false}
         // Should larger than command.input tabindex, make sure commond.input can be auto focused before lang selector
@@ -58,8 +59,8 @@ export const ExtraOptionsSelector = (props: SelectorProps) => {
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal container={props.container.current}>
-        <Select.Content className="overflow-hidden rounded-md bg-gray2 shadow-[0px_10px_38px_-10px_rgba(22,_23,_24,_0.35),0px_10px_20px_-15px_rgba(22,_23,_24,_0.2)]">
-          <Select.ScrollUpButton className="flex h-[25px] cursor-default items-center justify-center bg-gray2 text-mayumi-gray-1200">
+        <Select.Content className="bg-gray2 overflow-hidden rounded-md shadow-[0px_10px_38px_-10px_rgba(22,_23,_24,_0.35),0px_10px_20px_-15px_rgba(22,_23,_24,_0.2)]">
+          <Select.ScrollUpButton className="bg-gray2 text-mayumi-gray-1200 flex h-[25px] cursor-default items-center justify-center">
             <i className="gg-chevron-up/0.75" />
           </Select.ScrollUpButton>
           <Select.Viewport className="p-[5px]">
@@ -68,7 +69,7 @@ export const ExtraOptionsSelector = (props: SelectorProps) => {
               return <SelectItem key={key} value={lang.int}>{lang.int}</SelectItem>
             })}
           </Select.Viewport>
-          <Select.ScrollDownButton className="flex h-[25px] cursor-default items-center justify-center bg-gray2 text-mayumi-gray-1200">
+          <Select.ScrollDownButton className="bg-gray2 text-mayumi-gray-1200 flex h-[25px] cursor-default items-center justify-center">
             <i className="gg-chevron-down/0.75" />
           </Select.ScrollDownButton>
         </Select.Content>

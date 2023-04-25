@@ -1,5 +1,7 @@
-import type { ACTIONS_OPTIONS, TRANSLATE_WITH } from '../constants'
 import browsers from 'webextension-polyfill'
+
+import type { ACTIONS_OPTIONS, TRANSLATE_WITH } from '../constants'
+
 export interface UserConfig {
   // required
   OPENAI_API_KEY: string

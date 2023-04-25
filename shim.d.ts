@@ -1,7 +1,6 @@
-import type { ProtocolWithReturn } from 'webext-bridge'
-
-import type { ChatMessage } from '~/logic/openai/types'
 import type { ACTIONS, ASK_CHATGPT } from '~/logic/constants'
+import type { ChatMessage } from '~/logic/openai/types'
+import type { ProtocolWithReturn } from 'webext-bridge'
 
 declare module 'webext-bridge' {
   export interface ProtocolMap {

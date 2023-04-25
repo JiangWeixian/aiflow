@@ -1,5 +1,6 @@
-import { r } from './utils'
 import fs from 'node:fs'
+
+import { r } from './utils'
 
 const bg = fs.readFileSync(r('extension/dist/background/index.mjs'), 'utf-8')
 

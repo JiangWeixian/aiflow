@@ -1,5 +1,6 @@
-import type { RefObject } from 'react'
 import { createHooks } from 'hookable'
+
+import type { RefObject } from 'react'
 
 // eslint-disable-next-line no-spaced-func
 export const focusManager = createHooks<Record<string, () => void>>()

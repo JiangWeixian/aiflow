@@ -1,5 +1,6 @@
-import type { ACTIONS } from '../constants'
 import { TRANSLATE_WITH } from '../constants'
+
+import type { ACTIONS } from '../constants'
 
 // As https://platform.openai.com/docs/guides/chat/instructing-chat-models
 export const systemMessages = {

@@ -1,8 +1,8 @@
-import { useBearStore } from '~/logic/store'
+import { ReactComponent as Trash } from '~/components/icons/trash.svg'
 import { Item, SubItem } from '~/contentScripts/components/commands/common/item'
 import { actions } from '~/logic/constants'
 import { createMessageStore } from '~/logic/openai/message-store'
-import { ReactComponent as Trash } from '~/components/icons/trash.svg'
+import { useBearStore } from '~/logic/store'
 
 const messageStore = createMessageStore()
 

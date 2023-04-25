@@ -24,9 +24,9 @@
 import pTimeout from 'p-timeout'
 import { v4 as uuidv4 } from 'uuid'
 
-import * as types from './types'
 import { fetchSSE } from './fetch-sse'
 import { createMessageStore } from './message-store'
+import * as types from './types'
 
 const CHATGPT_MODEL = 'gpt-3.5-turbo'
 

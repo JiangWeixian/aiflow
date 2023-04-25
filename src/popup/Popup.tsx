@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
 import './style.css'
+
+import { useState } from 'react'
 
 export function Popup() {
   const [count, setCount] = useState(0)
@@ -10,7 +11,7 @@ export function Popup() {
         <img src="/assets/logo.svg" className="App-logo" alt="logo" />
         <p>Hello Vite + React!</p>
         <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
+          <button type="button" onClick={() => setCount(count => count + 1)}>
             count is: {count}
           </button>
         </p>

@@ -1,10 +1,10 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { onMessage } from 'webext-bridge'
-import { App } from './views/App'
 import { createRoot } from 'react-dom/client'
+import { onMessage } from 'webext-bridge'
 
-// Firefox `browser.tabs.executeScript()` requires scripts return a primitive value
-;(() => {
+import { App } from './views/App'
+
+(() => {
   console.info('[aiflow] Hello world from content script')
 
   // communication example: send previous tab title from background page

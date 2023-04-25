@@ -1,7 +1,8 @@
-import { Item, SubItem } from '~/contentScripts/components/commands/common/item'
-import type { ItemProps } from '~/contentScripts/components/commands/common/item'
-import { pages } from '~/logic/constants'
 import { ReactComponent as OptionsIcon } from '~/components/icons/options.svg'
+import { Item, SubItem } from '~/contentScripts/components/commands/common/item'
+import { pages } from '~/logic/constants'
+
+import type { ItemProps } from '~/contentScripts/components/commands/common/item'
 
 export function OptionCommand({ onSelect }: ItemProps) {
   return (

@@ -1,6 +1,10 @@
-import type { ErrorPayload, HMRPayload, Update } from 'vite'
-import type { ViteHotContext } from 'vite/types/hot'
+import type {
+  ErrorPayload,
+  HMRPayload,
+  Update,
+} from 'vite'
 import type { InferCustomEventPayload } from 'vite/types/customEvent'
+import type { ViteHotContext } from 'vite/types/hot'
 // Vite v3 doesn't export overlay
 // import { ErrorOverlay, overlayId } from 'vite/src/client/overlay'
 
@@ -31,7 +35,9 @@ try {
 
   // ping server
   socket.addEventListener('close', async ({ wasClean }) => {
-    if (wasClean) return
+    if (wasClean) {
+      return
+    }
     console.log('[vite] server connection lost. polling for restart...')
     await waitForSuccessfulPing()
     location.reload()
@@ -41,12 +47,14 @@ try {
 }
 
 function warnFailedFetch(err: Error, path: string | string[]) {
-  if (!err.message.match('fetch')) console.error(err)
+  if (!err.message.match('fetch')) {
+    console.error(err)
+  }
 
   console.error(
-    `[hmr] Failed to reload ${path}. ` +
-      'This could be due to syntax errors or importing non-existent ' +
-      'modules. (see errors above)',
+    `[hmr] Failed to reload ${path}. `
+      + 'This could be due to syntax errors or importing non-existent '
+      + 'modules. (see errors above)',
   )
 }
 
@@ -91,7 +99,7 @@ async function handleMessage(payload: HMRPayload) {
           // can't use querySelector with `[href*=]` here since the link may be
           // using relative paths so we need to use link.href to grab the full
           // URL for the include check.
-          const el = Array.from(document.querySelectorAll<HTMLLinkElement>('link')).find((e) =>
+          const el = Array.from(document.querySelectorAll<HTMLLinkElement>('link')).find(e =>
             cleanUrl(e.href).includes(searchUrl),
           )
           if (el) {
@@ -116,11 +124,12 @@ async function handleMessage(payload: HMRPayload) {
         const pagePath = decodeURI(location.pathname)
         const payloadPath = base + payload.path.slice(1)
         if (
-          pagePath === payloadPath ||
-          payload.path === '/index.html' ||
-          (pagePath.endsWith('/') && `${pagePath}index.html` === payloadPath)
-        )
+          pagePath === payloadPath
+          || payload.path === '/index.html'
+          || (pagePath.endsWith('/') && `${pagePath}index.html` === payloadPath)
+        ) {
           location.reload()
+        }
       } else {
         location.reload()
       }
@@ -133,14 +142,19 @@ async function handleMessage(payload: HMRPayload) {
       // TODO Trigger their dispose callbacks.
       payload.paths.forEach((path) => {
         const fn = pruneMap.get(path)
-        if (fn) fn(dataMap.get(path))
+        if (fn) {
+          fn(dataMap.get(path))
+        }
       })
       break
     case 'error': {
       notifyListeners('vite:error', payload)
       const err = payload.err
-      if (enableOverlay) createErrorOverlay(err)
-      else console.error(`[vite] Internal Server Error\n${err.message}\n${err.stack}`)
+      if (enableOverlay) {
+        createErrorOverlay(err)
+      } else {
+        console.error(`[vite] Internal Server Error\n${err.message}\n${err.stack}`)
+      }
 
       break
     }
@@ -154,11 +168,15 @@ async function handleMessage(payload: HMRPayload) {
 function notifyListeners<T extends string>(event: T, data: InferCustomEventPayload<T>): void
 function notifyListeners(event: string, data: any): void {
   const cbs = customListenersMap.get(event)
-  if (cbs) cbs.forEach((cb) => cb(data))
+  if (cbs) {
+    cbs.forEach(cb => cb(data))
+  }
 }
 
 function createErrorOverlay(_err: ErrorPayload['err']) {
-  if (!enableOverlay) return
+  if (!enableOverlay) {
+    return
+  }
   clearErrorOverlay()
   // document.body.appendChild(new ErrorOverlay(err))
 }
@@ -188,7 +206,7 @@ async function queueUpdate(p: Promise<(() => void) | undefined>) {
     pending = false
     const loading = [...queued]
     queued = []
-    ;(await Promise.all(loading)).forEach((fn) => fn && fn())
+    ;(await Promise.all(loading)).forEach(fn => fn && fn())
   }
 }
 
@@ -201,7 +219,7 @@ async function waitForSuccessfulPing(ms = 1000) {
       break
     } catch (e) {
       // wait ms before attempting to ping again
-      await new Promise((resolve) => setTimeout(resolve, ms))
+      await new Promise(resolve => setTimeout(resolve, ms))
     }
   }
 }
@@ -255,11 +273,13 @@ export function updateStyle(id: string, content: string): void {
 export function removeStyle(id: string): void {
   const style = sheetsMap.get(id)
   if (style) {
-    if (style instanceof CSSStyleSheet)
+    if (style instanceof CSSStyleSheet) {
       document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
         (s: CSSStyleSheet) => s !== style,
       )
-    else document.head.removeChild(style)
+    } else {
+      document.head.removeChild(style)
+    }
 
     sheetsMap.delete(id)
   }
@@ -293,20 +313,24 @@ async function fetchUpdate({ path, acceptedPath, timestamp }: Update) {
     // dep update
     for (const { deps } of mod.callbacks) {
       deps.forEach((dep) => {
-        if (acceptedPath === dep) modulesToUpdate.add(dep)
+        if (acceptedPath === dep) {
+          modulesToUpdate.add(dep)
+        }
       })
     }
   }
 
   // determine the qualified callbacks before we re-import the modules
   const qualifiedCallbacks = mod.callbacks.filter(({ deps }) => {
-    return deps.some((dep) => modulesToUpdate.has(dep))
+    return deps.some(dep => modulesToUpdate.has(dep))
   })
 
   await Promise.all(
     Array.from(modulesToUpdate).map(async (dep) => {
       const disposer = disposeMap.get(dep)
-      if (disposer) await disposer(dataMap.get(dep))
+      if (disposer) {
+        await disposer(dataMap.get(dep))
+      }
       const [path, query] = dep.split('?')
       try {
         const newMod = await import(
@@ -321,7 +345,9 @@ async function fetchUpdate({ path, acceptedPath, timestamp }: Update) {
   )
 
   return () => {
-    for (const { deps, fn } of qualifiedCallbacks) fn(deps.map((dep) => moduleMap.get(dep)))
+    for (const { deps, fn } of qualifiedCallbacks) {
+      fn(deps.map(dep => moduleMap.get(dep)))
+    }
 
     const loggedPath = isSelfUpdate ? path : `${acceptedPath} via ${path}`
     console.log(`[vite] hot updated: ${loggedPath}`)
@@ -329,13 +355,15 @@ async function fetchUpdate({ path, acceptedPath, timestamp }: Update) {
 }
 
 function normalizeScriptUrl(url: string, timestamp: number) {
-  if (!url.endsWith('.js') && !url.endsWith('.mjs')) url = `${url}.js`
+  if (!url.endsWith('.js') && !url.endsWith('.mjs')) {
+    url = `${url}.js`
+  }
   return `${url}?t=${timestamp}`
 }
 
 function sendMessageBuffer() {
   if (socket.readyState === 1) {
-    messageBuffer.forEach((msg) => socket.send(msg))
+    messageBuffer.forEach(msg => socket.send(msg))
     messageBuffer.length = 0
   }
 }
@@ -352,12 +380,16 @@ interface HotCallback {
 }
 
 export function createHotContext(ownerPath: string): ViteHotContext {
-  if (!dataMap.has(ownerPath)) dataMap.set(ownerPath, {})
+  if (!dataMap.has(ownerPath)) {
+    dataMap.set(ownerPath, {})
+  }
 
   // when a file is hot updated, a new context is created
   // clear its stale callbacks
   const mod = hotModulesMap.get(ownerPath)
-  if (mod) mod.callbacks = []
+  if (mod) {
+    mod.callbacks = []
+  }
 
   // clear stale custom event listeners
   const staleListeners = ctxToListenersMap.get(ownerPath)
@@ -367,7 +399,7 @@ export function createHotContext(ownerPath: string): ViteHotContext {
       if (listeners) {
         customListenersMap.set(
           event,
-          listeners.filter((l) => !staleFns.includes(l)),
+          listeners.filter(l => !staleFns.includes(l)),
         )
       }
     }
@@ -452,7 +484,9 @@ export function createHotContext(ownerPath: string): ViteHotContext {
  */
 export function injectQuery(url: string, queryToInject: string): string {
   // skip urls that won't be handled by vite
-  if (!url.startsWith('.') && !url.startsWith('/')) return url
+  if (!url.startsWith('.') && !url.startsWith('/')) {
+    return url
+  }
 
   // can't use pathname from URL since it may be relative like ../
   const pathname = url.replace(/#.*$/, '').replace(/\?.*$/, '')

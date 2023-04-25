@@ -1,30 +1,50 @@
-import type React from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import * as Popover from '@radix-ui/react-popover'
 import * as RadixDialog from '@radix-ui/react-dialog'
+import * as Popover from '@radix-ui/react-popover'
+import clsx from 'clsx'
 import { Command } from 'cmdk'
-import { sendMessage } from 'webext-bridge'
 // more about this bugs: https://github.com/whatwg/html/issues/833 and https://github.com/theKashey/react-focus-lock/issues/188
 // focus lock used auto focus active element
 // import FocusLock from 'react-focus-lock'
 import { Input } from 'mayumi/input'
-import clsx from 'clsx'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+import { sendMessage } from 'webext-bridge'
 
 import { Item, SubItem } from './commands/common/item'
 import { HistoryCommand, HistorySubCommands } from './commands/history'
-import { StorageCommand, StorageSubCommands } from './commands/storage'
 import { OptionCommand, OptionSubCommands } from './commands/options'
+import { StorageCommand, StorageSubCommands } from './commands/storage'
 import { SummaryCommand, SummarySubCommands } from './commands/summary'
-
-import { useBearStore, useCMDKStore, useUserConfig } from '~/logic/store'
-import type { PAGES } from '~/logic/constants'
-import { ASK_CHATGPT, ASK_CHATGPT_PAGE, ASK_CHATGPT_WITH, CONFIG_PAGE, HOME_PAGE, OPENAI_API_KEY, TRANSLATE_WITH, TRANSLATE_WITH_PAGE, actions, pages } from '~/logic/constants'
-import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ExtraOptionsSelector } from '~/components/select'
 import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
-import { convertPageToAction } from '~/logic/normalize'
+import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
+import {
+  actions,
+  ASK_CHATGPT,
+  ASK_CHATGPT_PAGE,
+  ASK_CHATGPT_WITH,
+  CONFIG_PAGE,
+  HOME_PAGE,
+  OPENAI_API_KEY,
+  pages,
+  TRANSLATE_WITH,
+  TRANSLATE_WITH_PAGE,
+} from '~/logic/constants'
 import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
+import { convertPageToAction } from '~/logic/normalize'
+import {
+  useBearStore,
+  useCMDKStore,
+  useUserConfig,
+} from '~/logic/store'
+
+import type { PAGES } from '~/logic/constants'
+import type React from 'react'
 
 interface ItemProps {
   onSelect: (type: string, params?: { text?: string }) => void
@@ -166,7 +186,7 @@ export function CMDK() {
                   {pages.map(p => (
                     <div
                       key={p}
-                      className="rounded-md bg-mayumi-gray-700 px-3 py-1 text-xs uppercase text-mayumi-gray-1100 shadow"
+                      className="bg-mayumi-gray-700 text-mayumi-gray-1100 rounded-md px-3 py-1 text-xs uppercase shadow"
                     >
                       {convertPageToAction(p)}
                     </div>

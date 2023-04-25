@@ -1,13 +1,18 @@
 import { onMessage, sendMessage } from 'webext-bridge'
-import type { Tabs } from 'webextension-polyfill'
 import browser from 'webextension-polyfill'
 
+import {
+  ASK_CHATGPT,
+  GET_CURRENT_TAB,
+  OPENAI_API_KEY,
+} from '~/logic/constants'
 import { ChatGPTAPI } from '~/logic/openai'
-import { ASK_CHATGPT, GET_CURRENT_TAB, OPENAI_API_KEY } from '~/logic/constants'
 import { createMessageStore } from '~/logic/openai/message-store'
-import { userConfig } from '~/logic/store/user-config'
 import { systemMessages } from '~/logic/prompts/constants'
 import { formatters } from '~/logic/prompts/utils'
+import { userConfig } from '~/logic/store/user-config'
+
+import type { Tabs } from 'webextension-polyfill'
 
 const isDev = process.env.NODE_ENV !== 'production'
 

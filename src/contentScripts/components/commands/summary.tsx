@@ -3,8 +3,9 @@
  */
 
 import { Item, SubItem } from '~/contentScripts/components/commands/common/item'
-import type { ItemProps } from '~/contentScripts/components/commands/common/item'
 import { actions } from '~/logic/constants'
+
+import type { ItemProps } from '~/contentScripts/components/commands/common/item'
 
 export function SummaryCommand({ onSelect }: ItemProps) {
   return (

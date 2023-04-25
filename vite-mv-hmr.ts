@@ -1,7 +1,10 @@
-import { dirname, join } from 'path'
-import type { HMRPayload, PluginOption } from 'vite'
+import { dirname, join } from 'node:path'
+
 import fs from 'fs-extra'
+
 import { isWin, r } from './scripts/utils'
+
+import type { HMRPayload, PluginOption } from 'vite'
 
 const targetDir = r('extension')
 

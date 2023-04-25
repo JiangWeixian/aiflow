@@ -1,7 +1,7 @@
 import './style.scss'
 
-import { CMDK } from '~/contentScripts/components/cmdk'
 import { Chat } from '~/contentScripts/components/chat'
+import { CMDK } from '~/contentScripts/components/cmdk'
 
 export const App = () => {
   return (

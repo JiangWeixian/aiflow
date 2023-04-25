@@ -1,7 +1,7 @@
+import { logger } from '@jiangweixian1994/zustand-middlwares/devtools'
+import { local, sync } from '@jiangweixian1994/zustand-middlwares/storage'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { local, sync } from '@jiangweixian1994/zustand-middlwares/storage'
-import { logger } from '@jiangweixian1994/zustand-middlwares/devtools'
 
 import type { ChatMessage } from '~/logic/openai/types'
 // import { getConvention } from '~/logic/conventions'

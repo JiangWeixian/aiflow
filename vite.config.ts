@@ -1,11 +1,17 @@
-import { defineConfig } from 'vite'
-import type { UserConfig } from 'vite'
-import AutoImport from 'unplugin-auto-import/vite'
-import react from '@vitejs/plugin-react'
 import replace from '@rollup/plugin-replace'
+import react from '@vitejs/plugin-react'
+import AutoImport from 'unplugin-auto-import/vite'
+import { defineConfig } from 'vite'
 import svgr from 'vite-plugin-svgr'
+
+import {
+  isDev,
+  port,
+  r,
+} from './scripts/utils'
 import { MV3Hmr } from './vite-mv-hmr'
-import { isDev, port, r } from './scripts/utils'
+
+import type { UserConfig } from 'vite'
 
 export const sharedConfig: UserConfig = {
   root: r('src'),

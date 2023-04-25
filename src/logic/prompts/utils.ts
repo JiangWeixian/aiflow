@@ -1,6 +1,12 @@
-import type { ACTIONS } from '../constants'
-import { ACTIONS_OPTIONS, ASK_CHATGPT_WITH, SUMMARY_WITH, TRANSLATE_WITH } from '../constants'
+import {
+  ACTIONS_OPTIONS,
+  ASK_CHATGPT_WITH,
+  SUMMARY_WITH,
+  TRANSLATE_WITH,
+} from '../constants'
 import { userConfig } from '~/logic/store/user-config'
+
+import type { ACTIONS } from '../constants'
 
 const formatTranslatePrompt = async (text?: string) => {
   if (!text) {

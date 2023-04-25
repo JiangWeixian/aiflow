@@ -1,22 +1,28 @@
-import { memo, useEffect, useRef, useState } from 'react'
-import clsx from 'clsx'
 import * as ScrollArea from '@radix-ui/react-scroll-area'
+import clsx from 'clsx'
+import {
+  memo,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed'
 import { onMessage } from 'webext-bridge'
 
-import { useBearStore } from '~/logic/store'
-import type { ChatMessage } from '~/logic/openai/types'
 import { MarkdownContent } from '~/components/md'
 import { ASK_CHATGPT } from '~/logic/constants'
+import { useBearStore } from '~/logic/store'
+
+import type { ChatMessage } from '~/logic/openai/types'
 
 const MessageItem = memo(({ message }: { message: Partial<ChatMessage> }) => {
   return (
-    <div className={clsx('flex flex-col gap-2 p-4 text-sm text-mayumi-gray-1100', {
+    <div className={clsx('text-mayumi-gray-1100 flex flex-col gap-2 p-4 text-sm', {
       'bg-mayumi-gray-200': message.role === 'user',
       'bg-mayumi-gray-300': message.role === 'assistant',
     })}
     >
-      <div className="flex-0 rounded-md text-mayumi-gray-1200">
+      <div className="flex-0 text-mayumi-gray-1200 rounded-md">
         { message.role === 'user' ? 'You:' : 'Assistant:' }
       </div>
       <div className="flex-1 rounded-md">
@@ -65,7 +71,7 @@ export const ChatInCommand = (props: ChatInCommandProps) => {
     scrollIntoView()
   }, [updateOrUpsertConventions])
   return (
-    <div className="aiflow-chat-in-command flex-1 bg-mayumi-gray-200">
+    <div className="aiflow-chat-in-command bg-mayumi-gray-200 flex-1">
       <ScrollArea.Root className="pointer-events-auto h-[400px] overflow-hidden pt-2">
         <ScrollArea.Viewport className="h-full w-full rounded">
           <div ref={listRef}>
