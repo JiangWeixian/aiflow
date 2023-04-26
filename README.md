@@ -2,12 +2,9 @@
 
 ## features
 
-- Ask GPT in any page
-- Translate via GPT in any page
-
-## requirements
-
-`node>=16`
+- [x] Ask GPT in any page
+- [x] Translate via GPT in any page
+- [x] Summary via GPT
 
 ## usage
 
@@ -33,3 +30,9 @@ Then, add your [`Openai Api Key`](https://platform.openai.com/overview)
 
 1. Type `translate...`
 2. Presss <kbd>enter</kbd> or Open commander with <kbd>⌘</kbd><kbd>m</kbd>(not ready yet!)
+
+
+## developer
+### requirements
+
+`node>=16`
