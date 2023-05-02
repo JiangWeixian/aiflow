@@ -5,6 +5,11 @@
 - [x] Ask GPT in any page
 - [x] Translate via GPT in any page
 - [x] Summary via GPT
+- [ ] notifications
+- [ ] tabs
+  - [ ] search tabs
+  - [ ] pin tabs
+  - [ ] group tabs
 
 ## usage
 
