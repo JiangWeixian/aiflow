@@ -10,12 +10,14 @@ export function Item({
   isCommand = false,
   onSelect,
   disabled = false,
+  meta = 'Application',
 }: {
   children: React.ReactNode
   value?: string
   isCommand?: boolean
   disabled?: boolean
   onSelect?: (value: string) => void
+  meta?: string
 }) {
   return (
     <Command.Item
@@ -24,7 +26,7 @@ export function Item({
       onSelect={onSelect}
     >
       {children}
-      <span cmdk-raycast-meta="">{isCommand ? 'Command' : 'Application'}</span>
+      <span cmdk-raycast-meta="">{isCommand ? 'Command' : meta}</span>
     </Command.Item>
   )
 }

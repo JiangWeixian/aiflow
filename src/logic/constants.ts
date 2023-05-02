@@ -1,8 +1,15 @@
 import type { ValueOf } from 'type-fest'
 
-export const GET_CURRENT_TAB = 'get-current-tab'
 // port id
+export const GET_CURRENT_TAB = 'get-current-tab'
 export const ASK_CHATGPT = 'ask-chatgpt'
+const QUERY_TABS = 'query-tabs'
+const UPATE_TABS = 'update-tabs'
+export const channels = {
+  QUERY_TABS,
+  ASK_CHATGPT,
+  UPATE_TABS,
+} as const
 
 // actions
 export const ASK_CHATGPT_WITH = 'ask-chatgpt-with'
@@ -25,14 +32,39 @@ export const CONFIG_PAGE = 'config-page'
 export const TRANSLATE_WITH_PAGE = 'translate-with-page'
 export const SUMMARY_WITH_PAGE = 'summary-with-page'
 export const HOME_PAGE = 'home-page'
+export const SEARCH_TABS_PAGE = 'search-tabs-page'
 export const pages = {
   ASK_CHATGPT_PAGE,
   CONFIG_PAGE,
   TRANSLATE_WITH_PAGE,
   HOME_PAGE,
   SUMMARY_WITH_PAGE,
+  SEARCH_TABS_PAGE,
 } as const
 export type PAGES = ValueOf<typeof pages>
+interface MetaInfo {
+  hasChat: boolean
+}
+export const meta: Record<string, MetaInfo> = {
+  [pages.ASK_CHATGPT_PAGE]: {
+    hasChat: true,
+  },
+  [pages.SUMMARY_WITH_PAGE]: {
+    hasChat: true,
+  },
+  [pages.TRANSLATE_WITH_PAGE]: {
+    hasChat: true,
+  },
+  [pages.SEARCH_TABS_PAGE]: {
+    hasChat: false,
+  },
+  [pages.CONFIG_PAGE]: {
+    hasChat: false,
+  },
+  [pages.HOME_PAGE]: {
+    hasChat: false,
+  },
+}
 
 // user config keys
 export const OPENAI_API_KEY = 'OPENAI_API_KEY'

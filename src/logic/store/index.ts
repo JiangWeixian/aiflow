@@ -18,6 +18,7 @@ interface BearState {
   clear: () => void
 }
 
+// TODO: fix typo
 // conventions
 export const useBearStore = create<BearState>()(
   logger(

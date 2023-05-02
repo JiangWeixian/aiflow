@@ -17,8 +17,10 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import { Item, SubItem } from './commands/common/item'
 import { HistoryCommand, HistorySubCommands } from './commands/history'
 import { OptionCommand, OptionSubCommands } from './commands/options'
+import { SearchTabsCommand } from './commands/search-tabs'
 import { StorageCommand, StorageSubCommands } from './commands/storage'
 import { SummaryCommand, SummarySubCommands } from './commands/summary'
+import { SearchTabsPage } from './pages/search-tabs'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ExtraOptionsSelector } from '~/components/select'
 import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
@@ -30,6 +32,7 @@ import {
   ASK_CHATGPT_WITH,
   CONFIG_PAGE,
   HOME_PAGE,
+  meta,
   OPENAI_API_KEY,
   pages,
   TRANSLATE_WITH,
@@ -96,13 +99,14 @@ export function CMDK() {
     setValue(v)
   }, [])
 
+  // TODO: should handle inside each indie command
   // trigger on item select
   // comunication with background
   const handleValueSelect: ItemProps['onSelect'] = useCallback(async (value: string, params) => {
     console.log('handleValueSelect', value, params)
     // change pages..
     if (value.endsWith('-page')) {
-      setIsChat(true)
+      setIsChat(!!meta[value]?.hasChat)
       setActivePages(prev => [...prev, value] as Pages[])
       return
     }
@@ -168,8 +172,8 @@ export function CMDK() {
 
   focusIfNeed(inputRef, { name: 'command-input' })
 
-  const shouldDisplayInput = activePage === HOME_PAGE
   const shouldDisplayChatInput = activePage === pages.TRANSLATE_WITH_PAGE || activePage === pages.ASK_CHATGPT_PAGE || activePage === pages.SUMMARY_WITH_PAGE
+  const shouldDisplayInput = !shouldDisplayChatInput
   const shouldDisplayExtraOptions = activePage === TRANSLATE_WITH_PAGE
 
   return (
@@ -233,8 +237,9 @@ export function CMDK() {
                 className="min-h-[400px]"
                 ref={listRef}
               >
-                {activePage === HOME_PAGE && <Home onSelect={handleValueSelect} />}
-                {activePage === CONFIG_PAGE && <Options onExit={popPage} />}
+                {activePage === pages.HOME_PAGE && <Home onSelect={handleValueSelect} />}
+                {activePage === pages.CONFIG_PAGE && <Options onExit={popPage} />}
+                {activePage === pages.SEARCH_TABS_PAGE && <SearchTabsPage />}
                 {shouldDisplayChatInput && <Chat page={activePage} />}
               </Command.List>
               <div
@@ -289,6 +294,7 @@ function Home({ onSelect }: ItemProps) {
           <i className="gg-add/0.8 text-mayumi-gray-1200" />
           Create workflow
         </Item> */}
+        <SearchTabsCommand onSelect={onSelect} />
         <HistoryCommand />
         <StorageCommand />
         <OptionCommand onSelect={onSelect} />
@@ -396,7 +402,7 @@ function ChatInput(props: ChatInputProps) {
   )
 }
 
-// Trigger by m key
+// Trigger by k key
 function SubCommand({
   inputRef,
   listRef,
@@ -511,6 +517,9 @@ interface ChatSubCommandsProps {
   page: Pages
 }
 
+/**
+ * @description Display sub commands on chat page. e.g. (enter) ASK ChatGPT
+ */
 function ChatSubCommands({ page }: ChatSubCommandsProps) {
   const { newConvention } = useBearStore(state => state)
   const { setSubCommandOpen } = useCMDKStore(state => state)
@@ -534,6 +543,9 @@ interface NonChatSubCommandsProps extends ItemProps {
   value: string
 }
 
+/**
+ * @description Display sub commands on non-chat page. e.g. Home page
+ */
 function NonChatSubCommands(props: NonChatSubCommandsProps) {
   if (props.value === pages.ASK_CHATGPT_PAGE) {
     return <AskGPTSubCommands onSelect={props.onSelect} />
