@@ -27,16 +27,10 @@ import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import {
   actions,
-  ASK_CHATGPT,
-  ASK_CHATGPT_PAGE,
-  ASK_CHATGPT_WITH,
-  CONFIG_PAGE,
-  HOME_PAGE,
+  channels,
   meta,
   OPENAI_API_KEY,
   pages,
-  TRANSLATE_WITH,
-  TRANSLATE_WITH_PAGE,
 } from '~/logic/constants'
 import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
 import { convertPageToAction } from '~/logic/normalize'
@@ -65,7 +59,7 @@ export function CMDK() {
   const commandRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const listRef = useRef(null)
-  const [activePages, setActivePages] = useState<Pages[]>([HOME_PAGE])
+  const [activePages, setActivePages] = useState<Pages[]>([pages.HOME_PAGE])
   const activePage = activePages[activePages.length - 1]
   const [loading, setLoading] = useState(false)
   const { updateOrUpsertConventions } = useBearStore()
@@ -110,20 +104,20 @@ export function CMDK() {
       setActivePages(prev => [...prev, value] as Pages[])
       return
     }
-    if (value === ASK_CHATGPT_WITH) {
+    if (value === actions.ASK_CHATGPT_WITH) {
       setLoading(true)
-      await sendMessage(ASK_CHATGPT, { text: params?.text, action: ASK_CHATGPT_WITH }, 'background')
+      await sendMessage(channels.ASK_CHATGPT, { text: params?.text, action: actions.ASK_CHATGPT_WITH }, 'background')
       setLoading(false)
     }
     // Should send all parent message?
-    if (value === TRANSLATE_WITH) {
+    if (value === actions.TRANSLATE_WITH) {
       setLoading(true)
-      await sendMessage(ASK_CHATGPT, { text: params?.text, action: TRANSLATE_WITH }, 'background')
+      await sendMessage(channels.ASK_CHATGPT, { text: params?.text, action: actions.TRANSLATE_WITH }, 'background')
       setLoading(false)
     }
     if (value === actions.SUMMARY_WITH) {
       setLoading(true)
-      await sendMessage(ASK_CHATGPT, { text: params?.text, action: actions.SUMMARY_WITH }, 'background')
+      await sendMessage(channels.ASK_CHATGPT, { text: params?.text, action: actions.SUMMARY_WITH }, 'background')
       setLoading(false)
     }
     setValue('')
@@ -134,7 +128,7 @@ export function CMDK() {
       if (e.key === 'j' && e.metaKey) {
         toggle()
         // Always pop confitg page when modal open/close
-        if (activePage === CONFIG_PAGE) {
+        if (activePage === pages.CONFIG_PAGE) {
           popPage()
         }
         updateHistoryOpen(false)
@@ -145,14 +139,14 @@ export function CMDK() {
       }
 
       // close modal when press esc on home page
-      if (e.key === 'Escape' && activePage === HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
+      if (e.key === 'Escape' && activePage === pages.HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
         setOpen(false)
         return
       }
 
       // return to home page when press esc
       // focus command input
-      if (e.key === 'Escape' && activePage !== HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
+      if (e.key === 'Escape' && activePage !== pages.HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
         popPage()
         // focus friendly
         focusManager.callHook('command-input')
@@ -164,7 +158,7 @@ export function CMDK() {
   }, [updateHistoryOpen, activePage, popPage, toggle, setOpen])
 
   useEffect(() => {
-    onMessage(ASK_CHATGPT, (message) => {
+    onMessage(channels.ASK_CHATGPT, (message) => {
       const { data } = message
       updateOrUpsertConventions(data.action, data.message)
     })
@@ -174,7 +168,7 @@ export function CMDK() {
 
   const shouldDisplayChatInput = activePage === pages.TRANSLATE_WITH_PAGE || activePage === pages.ASK_CHATGPT_PAGE || activePage === pages.SUMMARY_WITH_PAGE
   const shouldDisplayInput = !shouldDisplayChatInput
-  const shouldDisplayExtraOptions = activePage === TRANSLATE_WITH_PAGE
+  const shouldDisplayExtraOptions = activePage === pages.TRANSLATE_WITH_PAGE
 
   return (
     <>
@@ -222,7 +216,7 @@ export function CMDK() {
                   if (e.key === 'Enter') {
                     bounce()
                   }
-                  if (activePage === HOME_PAGE || inputValueRef.current?.length) {
+                  if (activePage === pages.HOME_PAGE || inputValueRef.current?.length) {
                     return
                   }
                   if (e.key === 'Backspace') {
@@ -300,16 +294,16 @@ function Home({ onSelect }: ItemProps) {
         <OptionCommand onSelect={onSelect} />
         <Item
           isCommand={true}
-          onSelect={() => onSelect(ASK_CHATGPT_PAGE)}
-          value={ASK_CHATGPT_PAGE}
+          onSelect={() => onSelect(pages.ASK_CHATGPT_PAGE)}
+          value={pages.ASK_CHATGPT_PAGE}
         >
           <i className="gg-girl/0.8 text-mayumi-gray-1200" />
           Ask ChatGPT
         </Item>
         <Item
           isCommand={true}
-          onSelect={() => onSelect(TRANSLATE_WITH_PAGE)}
-          value={TRANSLATE_WITH_PAGE}
+          onSelect={() => onSelect(pages.TRANSLATE_WITH_PAGE)}
+          value={pages.TRANSLATE_WITH_PAGE}
         >
           <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
           Tranasplate
@@ -417,7 +411,8 @@ function SubCommand({
   const [, setInputValue] = useState<string>()
   const subCommandinputRef = useRef<HTMLInputElement | null>(null)
 
-  const hasSubCommand = selectedValue !== HOME_PAGE
+  // TODO: Extract from meta info
+  const hasSubCommand = selectedValue !== pages.HOME_PAGE
 
   useEffect(() => {
     function listener(e: KeyboardEvent) {
@@ -594,13 +589,13 @@ function AskGPTSubCommands({ onSelect }: ItemProps) {
       <SubItem
         value="search-input"
         onSelect={() => {
-          onSelect(ASK_CHATGPT_WITH, { text: getSearchInputValue() })
+          onSelect(actions.ASK_CHATGPT_WITH, { text: getSearchInputValue() })
         }}
         shortcut="↵"
       >
         <span className="truncate">{getSearchInputValue() ?? 'Search input'}</span>
       </SubItem>
-      <CommonSubCommandItems page={ASK_CHATGPT_PAGE} onSelect={onSelect} />
+      <CommonSubCommandItems page={pages.ASK_CHATGPT_PAGE} onSelect={onSelect} />
     </>
   )
 }
@@ -614,7 +609,7 @@ function TranslateSubCommands({ onSelect }: ItemProps) {
       }} shortcut="↵">
         <span className="truncate">{'Translate full page'}</span>
       </SubItem> */}
-      <CommonSubCommandItems page={TRANSLATE_WITH_PAGE} onSelect={onSelect} />
+      <CommonSubCommandItems page={pages.TRANSLATE_WITH_PAGE} onSelect={onSelect} />
     </>
   )
 }
