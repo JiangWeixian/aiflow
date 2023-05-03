@@ -165,7 +165,13 @@ export const useCMDKStore = create<CMDKState>()(
 
 interface UserConfigState extends Partial<UserConfig> {
   set(config: Partial<UserConfig>): void
-  pinTab(tab: Tabs.Tab): void
+  /**
+   * @description Save tab into user local storage
+   * @param status
+   * - 0 unpin
+   * - 1 pin
+   */
+  pinTab(tab: Tabs.Tab, status?: 0 | 1): void
 }
 
 export const useUserConfig = create<UserConfigState>()(
@@ -175,12 +181,17 @@ export const useUserConfig = create<UserConfigState>()(
         set(config) {
           set(config, false, 'set')
         },
-        pinTab(tab) {
+        pinTab(tab, status = 1) {
           set((state) => {
-            const pinedTabs = state.pinedTabs
+            let pinedTabs = state.pinedTabs
+            if (status === 1) {
+              pinedTabs = uniqBy(pinedTabs?.concat(tab), 'id')
+            } else {
+              pinedTabs = uniqBy(pinedTabs?.filter(item => tab.id !== item.id), 'id')
+            }
             return {
               ...state,
-              pinedTabs: uniqBy(pinedTabs?.concat(tab), 'id'),
+              pinedTabs,
             }
           }, false, 'pinTab')
         },

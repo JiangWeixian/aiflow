@@ -21,13 +21,16 @@ export function SearchTabsCommand({ onSelect }: ItemProps) {
 }
 
 export function SearchTabsSubCommands() {
-  const { tabs } = useTabs()
+  const { tabs, pinedTabs } = useTabs()
   const pin = useUserConfig(s => s.pinTab)
-  const handlePinTab = () => {
+  const handlePinTab = (status: 0 | 1 = 1) => {
     const item = getSelectedItem() as HTMLElement
     const tabId = item?.dataset.tabid
-    const tab = tabs?.find(item => String(item.id) === tabId)
-    tab && pin(tab)
+    let tab = tabs?.find(item => String(item.id) === tabId)
+    if (!tab) {
+      tab = pinedTabs?.find(item => String(item.id) === tabId)
+    }
+    tab && pin(tab, status)
   }
   return (
     <>
@@ -37,6 +40,13 @@ export function SearchTabsSubCommands() {
         shortcut="↵"
       >
         <span className="truncate">Pin Tab</span>
+      </SubItem>
+      <SubItem
+        value={actions.UNPIN_TAB}
+        onSelect={() => handlePinTab(0)}
+        shortcut="↵"
+      >
+        <span className="truncate">UnPin Tab</span>
       </SubItem>
     </>
   )
