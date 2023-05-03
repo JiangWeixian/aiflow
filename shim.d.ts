@@ -12,6 +12,6 @@ declare module 'webext-bridge' {
     // message is ChatMessage typo
     [channels.ASK_CHATGPT]: ProtocolWithReturn<{ text?: string; action: ACTIONS; message?: any; tabId?: number }, { message: any }>
     [channels.QUERY_TABS]: ProtocolWithReturn<{ active?: boolean }, { tabs: any }>
-    [channels.UPATE_TABS]: ProtocolWithReturn<{ tabId?: number; active?: boolean }, { tab: any }>
+    [channels.UPATE_TABS]: ProtocolWithReturn<{ tabId?: number; active?: boolean }, { tab: any; error?: string }>
   }
 }

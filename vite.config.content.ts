@@ -9,7 +9,7 @@ export default defineConfig({
   build: {
     watch: isDev
       ? {
-          include: [r('src/contentScripts/**/*'), r('src/components/**/*'), r('src/logic/**/*')],
+          include: [r('src/contentScripts/**/*'), r('src/components/**/*'), r('src/logic/**/*'), r('src/hooks/**/*')],
         }
       : undefined,
     outDir: r('extension/dist/contentScripts'),
@@ -19,11 +19,14 @@ export default defineConfig({
     sourcemap: isDev ? 'inline' : false,
     lib: {
       entry: r('src/contentScripts/index.tsx'),
-      formats: ['es'],
+      // export token undefined
+      formats: ['cjs'],
     },
     rollupOptions: {
       output: {
+        // TODO: try .mjs
         entryFileNames: 'index.global.js',
+        format: 'cjs',
       },
     },
   },

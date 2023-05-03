@@ -11,6 +11,7 @@ export function Item({
   onSelect,
   disabled = false,
   meta = 'Application',
+  ...props
 }: {
   children: React.ReactNode
   value?: string
@@ -24,6 +25,7 @@ export function Item({
       disabled={disabled}
       value={value}
       onSelect={onSelect}
+      {...props}
     >
       {children}
       <span cmdk-raycast-meta="">{isCommand ? 'Command' : meta}</span>

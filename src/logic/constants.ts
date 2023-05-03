@@ -17,12 +17,14 @@ export const TRANSLATE_WITH = 'translate-with'
 export const SUMMARY_WITH = 'summary-with'
 export const OPEN_HISTORY = 'open-convenstions-history'
 export const CLEAR_STORAGE = 'clear-storage'
+const PIN_TAB = 'pin-tab'
 export const actions = {
   ASK_CHATGPT_WITH,
   TRANSLATE_WITH,
   SUMMARY_WITH,
   OPEN_HISTORY,
   CLEAR_STORAGE,
+  PIN_TAB,
 } as const
 export type ACTIONS = ValueOf<typeof actions>
 

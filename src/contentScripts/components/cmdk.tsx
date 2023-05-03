@@ -17,7 +17,7 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import { Item, SubItem } from './commands/common/item'
 import { HistoryCommand, HistorySubCommands } from './commands/history'
 import { OptionCommand, OptionSubCommands } from './commands/options'
-import { SearchTabsCommand } from './commands/search-tabs'
+import { SearchTabsCommand, SearchTabsSubCommands } from './commands/search-tabs'
 import { StorageCommand, StorageSubCommands } from './commands/storage'
 import { SummaryCommand, SummarySubCommands } from './commands/summary'
 import { SearchTabsPage } from './pages/search-tabs'
@@ -33,7 +33,7 @@ import {
   pages,
 } from '~/logic/constants'
 import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
-import { convertPageToAction } from '~/logic/normalize'
+import { convertPageToAction, normalizeSubCommandTitle } from '~/logic/normalize'
 import {
   useBearStore,
   useCMDKStore,
@@ -260,6 +260,7 @@ export function CMDK() {
                   listRef={listRef}
                   selectedValue={value}
                   inputRef={inputRef}
+                  page={activePage}
                   onSelect={handleValueSelect}
                 />
               </div>
@@ -402,10 +403,12 @@ function SubCommand({
   listRef,
   selectedValue,
   onSelect,
+  page,
 }: {
   inputRef: React.RefObject<HTMLInputElement>
   listRef: React.RefObject<HTMLElement>
   selectedValue: string
+  page: string
 } & ItemProps) {
   const { subCommandOpen, toggleSubCommand, setSubCommandOpen, isChat } = useCMDKStore()
   const [, setInputValue] = useState<string>()
@@ -491,9 +494,9 @@ function SubCommand({
           shouldFilter={false}
         >
           <Command.List>
-            <Command.Group heading={selectedValue?.toUpperCase()}>
+            <Command.Group heading={normalizeSubCommandTitle(selectedValue)?.toUpperCase()}>
               {isChat && <ChatSubCommands page={selectedValue as Pages} />}
-              {!isChat && <NonChatSubCommands value={selectedValue} onSelect={onSelect} />}
+              {!isChat && <NonChatSubCommands value={selectedValue} page={page} onSelect={onSelect} />}
             </Command.Group>
           </Command.List>
           <Command.Input
@@ -536,29 +539,33 @@ function ChatSubCommands({ page }: ChatSubCommandsProps) {
 
 interface NonChatSubCommandsProps extends ItemProps {
   value: string
+  page: string
 }
 
 /**
  * @description Display sub commands on non-chat page. e.g. Home page
  */
 function NonChatSubCommands(props: NonChatSubCommandsProps) {
-  if (props.value === pages.ASK_CHATGPT_PAGE) {
-    return <AskGPTSubCommands onSelect={props.onSelect} />
-  }
-  if (props.value === pages.TRANSLATE_WITH_PAGE) {
-    return <TranslateSubCommands onSelect={props.onSelect} />
-  }
   if (props.value === actions.OPEN_HISTORY) {
     return <HistorySubCommands />
   }
   if (props.value === actions.CLEAR_STORAGE) {
     return <StorageSubCommands />
   }
+  if (props.value === pages.ASK_CHATGPT_PAGE) {
+    return <AskGPTSubCommands onSelect={props.onSelect} />
+  }
+  if (props.value === pages.TRANSLATE_WITH_PAGE) {
+    return <TranslateSubCommands onSelect={props.onSelect} />
+  }
   if (props.value === pages.CONFIG_PAGE) {
     return <OptionSubCommands onSelect={props.onSelect} />
   }
   if (props.value === pages.SUMMARY_WITH_PAGE) {
     return <SummarySubCommands onSelect={props.onSelect} />
+  }
+  if (props.page === pages.SEARCH_TABS_PAGE) {
+    return <SearchTabsSubCommands />
   }
   return null
 }

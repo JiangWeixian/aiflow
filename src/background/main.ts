@@ -132,8 +132,9 @@ onMessage(channels.UPATE_TABS, async (message) => {
     const { data } = message
     const tab: any = await browser.tabs.update(data.tabId, { active: data.active })
     return { tabs: tab ?? {} }
-  } catch {
-    return { tabs: {} }
+  } catch (error) {
+    console.error(error)
+    return { tabs: {}, error: (error as Error).message }
   }
 })
 
