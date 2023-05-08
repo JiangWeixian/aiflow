@@ -1,7 +1,7 @@
 {
   "name": "aiflow",
   "displayName": "aiflow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packageManager": "pnpm@7.23.0",
   "description": "aiflow",
   "keywords": [
@@ -63,6 +63,7 @@
     "document-ready": "^2.0.2",
     "eventsource-parser": "^0.1.0",
     "hookable": "^5.5.3",
+    "kagekiri": "^1.4.2",
     "lang-list": "^1.0.3",
     "lodash-es": "^4.17.21",
     "mayumi": "^0.0.4",

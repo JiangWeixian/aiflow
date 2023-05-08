@@ -1,4 +1,10 @@
-# aiflow
+<div align='center'>
+
+<img width="128" src="./public/assets/icon-512.png" />
+
+*▲ aiflow*
+
+</div>
 
 ## features
 
