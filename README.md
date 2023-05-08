@@ -13,8 +13,8 @@
 - [x] Summary via GPT
 - [ ] notifications
 - [ ] tabs
-  - [ ] search tabs
-  - [ ] pin tabs
+  - [x] search tabs
+  - [x] pin tabs
   - [ ] group tabs
 
 ## usage
