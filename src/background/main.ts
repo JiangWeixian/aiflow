@@ -2,7 +2,7 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import browser from 'webextension-polyfill'
 
 import {
-  ASK_CHATGPT,
+  channels,
   GET_CURRENT_TAB,
   OPENAI_API_KEY,
 } from '~/logic/constants'
@@ -72,7 +72,7 @@ onMessage(GET_CURRENT_TAB, async () => {
   }
 })
 
-onMessage(ASK_CHATGPT, async (message) => {
+onMessage(channels.ASK_CHATGPT, async (message) => {
   try {
     const { data } = message
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
@@ -93,11 +93,11 @@ onMessage(ASK_CHATGPT, async (message) => {
       systemMessage: systemMessages[action] ?? undefined,
       parentMessageId,
       async onBeforeSendMessage(userMessage) {
-        tabId && sendMessage(ASK_CHATGPT, { message: userMessage, action }, { context: 'content-script', tabId })
+        tabId && sendMessage(channels.ASK_CHATGPT, { message: userMessage, action }, { context: 'content-script', tabId })
       },
       async onProgress(partialResponse) {
         await store.set(action, partialResponse.id)
-        tabId && sendMessage(ASK_CHATGPT, { message: partialResponse, action }, { context: 'content-script', tabId })
+        tabId && sendMessage(channels.ASK_CHATGPT, { message: partialResponse, action }, { context: 'content-script', tabId })
       },
     })
     // save conventions into local browser storage
@@ -115,6 +115,26 @@ onMessage(ASK_CHATGPT, async (message) => {
     return {
       message: undefined,
     }
+  }
+})
+
+onMessage(channels.QUERY_TABS, async () => {
+  try {
+    const tabs: any = await browser.tabs.query({ currentWindow: true })
+    return { tabs: tabs ?? [] }
+  } catch {
+    return { tabs: [] }
+  }
+})
+
+onMessage(channels.UPATE_TABS, async (message) => {
+  try {
+    const { data } = message
+    const tab: any = await browser.tabs.update(data.tabId, { active: data.active })
+    return { tabs: tab ?? {} }
+  } catch (error) {
+    console.error(error)
+    return { tabs: {}, error: (error as Error).message }
   }
 })
 

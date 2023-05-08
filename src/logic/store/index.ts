@@ -1,11 +1,13 @@
 import { logger } from '@jiangweixian1994/zustand-middlwares/devtools'
 import { local, sync } from '@jiangweixian1994/zustand-middlwares/storage'
+import { uniqBy } from 'lodash-es'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
 import type { ChatMessage } from '~/logic/openai/types'
 // import { getConvention } from '~/logic/conventions'
 import type { UserConfig } from '~/logic/store/user-config'
+import type { Tabs } from 'webextension-polyfill'
 
 interface BearState {
   /**
@@ -18,6 +20,7 @@ interface BearState {
   clear: () => void
 }
 
+// TODO: fix typo
 // conventions
 export const useBearStore = create<BearState>()(
   logger(
@@ -90,16 +93,22 @@ interface CMDKState {
    * @description control cmdk panel open or not
    */
   open: boolean
-  isChat: boolean
-  setIsChat: (isChat: boolean) => void
   toggle: () => void
   setOpen: (open: boolean) => void
+  /**
+   * @description is in Chat page
+   */
+  isChat: boolean
+  setIsChat: (isChat: boolean) => void
   /**
    * @description control subcommand open or not
    */
   subCommandOpen: boolean
   toggleSubCommand: () => void
   setSubCommandOpen: (open: boolean) => void
+  /**
+   * @description control history panel
+   */
   historyOpen: boolean
   updateHistoryOpen: (open?: boolean) => void
   toggleHistoryOpen: () => void
@@ -156,6 +165,13 @@ export const useCMDKStore = create<CMDKState>()(
 
 interface UserConfigState extends Partial<UserConfig> {
   set(config: Partial<UserConfig>): void
+  /**
+   * @description Save tab into user local storage
+   * @param status
+   * - 0 unpin
+   * - 1 pin
+   */
+  pinTab(tab: Tabs.Tab, status?: 0 | 1): void
 }
 
 export const useUserConfig = create<UserConfigState>()(
@@ -164,6 +180,20 @@ export const useUserConfig = create<UserConfigState>()(
       set => ({
         set(config) {
           set(config, false, 'set')
+        },
+        pinTab(tab, status = 1) {
+          set((state) => {
+            let pinedTabs = state.pinedTabs
+            if (status === 1) {
+              pinedTabs = uniqBy(pinedTabs?.concat(tab), 'id')
+            } else {
+              pinedTabs = uniqBy(pinedTabs?.filter(item => tab.id !== item.id), 'id')
+            }
+            return {
+              ...state,
+              pinedTabs,
+            }
+          }, false, 'pinTab')
         },
       }),
       { name: 'user-config-store', storage: createJSONStorage(() => sync) },

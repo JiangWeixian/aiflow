@@ -17,26 +17,23 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import { Item, SubItem } from './commands/common/item'
 import { HistoryCommand, HistorySubCommands } from './commands/history'
 import { OptionCommand, OptionSubCommands } from './commands/options'
+import { SearchTabsCommand, SearchTabsSubCommands } from './commands/search-tabs'
 import { StorageCommand, StorageSubCommands } from './commands/storage'
 import { SummaryCommand, SummarySubCommands } from './commands/summary'
+import { SearchTabsPage } from './pages/search-tabs'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ExtraOptionsSelector } from '~/components/select'
 import { ChatInCommand } from '~/contentScripts/components/chat/in-command'
 import { getSearchInputValue } from '~/contentScripts/logic/search-engine'
 import {
   actions,
-  ASK_CHATGPT,
-  ASK_CHATGPT_PAGE,
-  ASK_CHATGPT_WITH,
-  CONFIG_PAGE,
-  HOME_PAGE,
+  channels,
+  meta,
   OPENAI_API_KEY,
   pages,
-  TRANSLATE_WITH,
-  TRANSLATE_WITH_PAGE,
 } from '~/logic/constants'
 import { focusIfNeed, focusManager } from '~/logic/focus-if-need'
-import { convertPageToAction } from '~/logic/normalize'
+import { convertPageToAction, normalizeSubCommandTitle } from '~/logic/normalize'
 import {
   useBearStore,
   useCMDKStore,
@@ -62,7 +59,7 @@ export function CMDK() {
   const commandRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const listRef = useRef(null)
-  const [activePages, setActivePages] = useState<Pages[]>([HOME_PAGE])
+  const [activePages, setActivePages] = useState<Pages[]>([pages.HOME_PAGE])
   const activePage = activePages[activePages.length - 1]
   const [loading, setLoading] = useState(false)
   const { updateOrUpsertConventions } = useBearStore()
@@ -96,30 +93,31 @@ export function CMDK() {
     setValue(v)
   }, [])
 
+  // TODO: should handle inside each indie command
   // trigger on item select
   // comunication with background
   const handleValueSelect: ItemProps['onSelect'] = useCallback(async (value: string, params) => {
     console.log('handleValueSelect', value, params)
     // change pages..
     if (value.endsWith('-page')) {
-      setIsChat(true)
+      setIsChat(!!meta[value]?.hasChat)
       setActivePages(prev => [...prev, value] as Pages[])
       return
     }
-    if (value === ASK_CHATGPT_WITH) {
+    if (value === actions.ASK_CHATGPT_WITH) {
       setLoading(true)
-      await sendMessage(ASK_CHATGPT, { text: params?.text, action: ASK_CHATGPT_WITH }, 'background')
+      await sendMessage(channels.ASK_CHATGPT, { text: params?.text, action: actions.ASK_CHATGPT_WITH }, 'background')
       setLoading(false)
     }
     // Should send all parent message?
-    if (value === TRANSLATE_WITH) {
+    if (value === actions.TRANSLATE_WITH) {
       setLoading(true)
-      await sendMessage(ASK_CHATGPT, { text: params?.text, action: TRANSLATE_WITH }, 'background')
+      await sendMessage(channels.ASK_CHATGPT, { text: params?.text, action: actions.TRANSLATE_WITH }, 'background')
       setLoading(false)
     }
     if (value === actions.SUMMARY_WITH) {
       setLoading(true)
-      await sendMessage(ASK_CHATGPT, { text: params?.text, action: actions.SUMMARY_WITH }, 'background')
+      await sendMessage(channels.ASK_CHATGPT, { text: params?.text, action: actions.SUMMARY_WITH }, 'background')
       setLoading(false)
     }
     setValue('')
@@ -130,7 +128,7 @@ export function CMDK() {
       if (e.key === 'j' && e.metaKey) {
         toggle()
         // Always pop confitg page when modal open/close
-        if (activePage === CONFIG_PAGE) {
+        if (activePage === pages.CONFIG_PAGE) {
           popPage()
         }
         updateHistoryOpen(false)
@@ -141,14 +139,14 @@ export function CMDK() {
       }
 
       // close modal when press esc on home page
-      if (e.key === 'Escape' && activePage === HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
+      if (e.key === 'Escape' && activePage === pages.HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
         setOpen(false)
         return
       }
 
       // return to home page when press esc
       // focus command input
-      if (e.key === 'Escape' && activePage !== HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
+      if (e.key === 'Escape' && activePage !== pages.HOME_PAGE && !useCMDKStore.getState().subCommandOpen) {
         popPage()
         // focus friendly
         focusManager.callHook('command-input')
@@ -160,7 +158,7 @@ export function CMDK() {
   }, [updateHistoryOpen, activePage, popPage, toggle, setOpen])
 
   useEffect(() => {
-    onMessage(ASK_CHATGPT, (message) => {
+    onMessage(channels.ASK_CHATGPT, (message) => {
       const { data } = message
       updateOrUpsertConventions(data.action, data.message)
     })
@@ -168,9 +166,9 @@ export function CMDK() {
 
   focusIfNeed(inputRef, { name: 'command-input' })
 
-  const shouldDisplayInput = activePage === HOME_PAGE
   const shouldDisplayChatInput = activePage === pages.TRANSLATE_WITH_PAGE || activePage === pages.ASK_CHATGPT_PAGE || activePage === pages.SUMMARY_WITH_PAGE
-  const shouldDisplayExtraOptions = activePage === TRANSLATE_WITH_PAGE
+  const shouldDisplayInput = !shouldDisplayChatInput
+  const shouldDisplayExtraOptions = activePage === pages.TRANSLATE_WITH_PAGE
 
   return (
     <>
@@ -218,7 +216,7 @@ export function CMDK() {
                   if (e.key === 'Enter') {
                     bounce()
                   }
-                  if (activePage === HOME_PAGE || inputValueRef.current?.length) {
+                  if (activePage === pages.HOME_PAGE || inputValueRef.current?.length) {
                     return
                   }
                   if (e.key === 'Backspace') {
@@ -233,8 +231,9 @@ export function CMDK() {
                 className="min-h-[400px]"
                 ref={listRef}
               >
-                {activePage === HOME_PAGE && <Home onSelect={handleValueSelect} />}
-                {activePage === CONFIG_PAGE && <Options onExit={popPage} />}
+                {activePage === pages.HOME_PAGE && <Home onSelect={handleValueSelect} />}
+                {activePage === pages.CONFIG_PAGE && <Options onExit={popPage} />}
+                {activePage === pages.SEARCH_TABS_PAGE && <SearchTabsPage />}
                 {shouldDisplayChatInput && <Chat page={activePage} />}
               </Command.List>
               <div
@@ -261,6 +260,7 @@ export function CMDK() {
                   listRef={listRef}
                   selectedValue={value}
                   inputRef={inputRef}
+                  page={activePage}
                   onSelect={handleValueSelect}
                 />
               </div>
@@ -289,21 +289,22 @@ function Home({ onSelect }: ItemProps) {
           <i className="gg-add/0.8 text-mayumi-gray-1200" />
           Create workflow
         </Item> */}
+        <SearchTabsCommand onSelect={onSelect} />
         <HistoryCommand />
         <StorageCommand />
         <OptionCommand onSelect={onSelect} />
         <Item
           isCommand={true}
-          onSelect={() => onSelect(ASK_CHATGPT_PAGE)}
-          value={ASK_CHATGPT_PAGE}
+          onSelect={() => onSelect(pages.ASK_CHATGPT_PAGE)}
+          value={pages.ASK_CHATGPT_PAGE}
         >
           <i className="gg-girl/0.8 text-mayumi-gray-1200" />
           Ask ChatGPT
         </Item>
         <Item
           isCommand={true}
-          onSelect={() => onSelect(TRANSLATE_WITH_PAGE)}
-          value={TRANSLATE_WITH_PAGE}
+          onSelect={() => onSelect(pages.TRANSLATE_WITH_PAGE)}
+          value={pages.TRANSLATE_WITH_PAGE}
         >
           <MajesticonsTranslate className="fill-mayumi-gray-1200/1" />
           Tranasplate
@@ -396,22 +397,25 @@ function ChatInput(props: ChatInputProps) {
   )
 }
 
-// Trigger by m key
+// Trigger by k key
 function SubCommand({
   inputRef,
   listRef,
   selectedValue,
   onSelect,
+  page,
 }: {
   inputRef: React.RefObject<HTMLInputElement>
   listRef: React.RefObject<HTMLElement>
   selectedValue: string
+  page: string
 } & ItemProps) {
   const { subCommandOpen, toggleSubCommand, setSubCommandOpen, isChat } = useCMDKStore()
   const [, setInputValue] = useState<string>()
   const subCommandinputRef = useRef<HTMLInputElement | null>(null)
 
-  const hasSubCommand = selectedValue !== HOME_PAGE
+  // TODO: Extract from meta info
+  const hasSubCommand = selectedValue !== pages.HOME_PAGE
 
   useEffect(() => {
     function listener(e: KeyboardEvent) {
@@ -490,9 +494,9 @@ function SubCommand({
           shouldFilter={false}
         >
           <Command.List>
-            <Command.Group heading={selectedValue?.toUpperCase()}>
+            <Command.Group heading={normalizeSubCommandTitle(selectedValue)?.toUpperCase()}>
               {isChat && <ChatSubCommands page={selectedValue as Pages} />}
-              {!isChat && <NonChatSubCommands value={selectedValue} onSelect={onSelect} />}
+              {!isChat && <NonChatSubCommands value={selectedValue} page={page} onSelect={onSelect} />}
             </Command.Group>
           </Command.List>
           <Command.Input
@@ -511,6 +515,9 @@ interface ChatSubCommandsProps {
   page: Pages
 }
 
+/**
+ * @description Display sub commands on chat page. e.g. (enter) ASK ChatGPT
+ */
 function ChatSubCommands({ page }: ChatSubCommandsProps) {
   const { newConvention } = useBearStore(state => state)
   const { setSubCommandOpen } = useCMDKStore(state => state)
@@ -532,26 +539,33 @@ function ChatSubCommands({ page }: ChatSubCommandsProps) {
 
 interface NonChatSubCommandsProps extends ItemProps {
   value: string
+  page: string
 }
 
+/**
+ * @description Display sub commands on non-chat page. e.g. Home page
+ */
 function NonChatSubCommands(props: NonChatSubCommandsProps) {
-  if (props.value === pages.ASK_CHATGPT_PAGE) {
-    return <AskGPTSubCommands onSelect={props.onSelect} />
-  }
-  if (props.value === pages.TRANSLATE_WITH_PAGE) {
-    return <TranslateSubCommands onSelect={props.onSelect} />
-  }
   if (props.value === actions.OPEN_HISTORY) {
     return <HistorySubCommands />
   }
   if (props.value === actions.CLEAR_STORAGE) {
     return <StorageSubCommands />
   }
+  if (props.value === pages.ASK_CHATGPT_PAGE) {
+    return <AskGPTSubCommands onSelect={props.onSelect} />
+  }
+  if (props.value === pages.TRANSLATE_WITH_PAGE) {
+    return <TranslateSubCommands onSelect={props.onSelect} />
+  }
   if (props.value === pages.CONFIG_PAGE) {
     return <OptionSubCommands onSelect={props.onSelect} />
   }
   if (props.value === pages.SUMMARY_WITH_PAGE) {
     return <SummarySubCommands onSelect={props.onSelect} />
+  }
+  if (props.page === pages.SEARCH_TABS_PAGE) {
+    return <SearchTabsSubCommands />
   }
   return null
 }
@@ -582,13 +596,13 @@ function AskGPTSubCommands({ onSelect }: ItemProps) {
       <SubItem
         value="search-input"
         onSelect={() => {
-          onSelect(ASK_CHATGPT_WITH, { text: getSearchInputValue() })
+          onSelect(actions.ASK_CHATGPT_WITH, { text: getSearchInputValue() })
         }}
         shortcut="↵"
       >
         <span className="truncate">{getSearchInputValue() ?? 'Search input'}</span>
       </SubItem>
-      <CommonSubCommandItems page={ASK_CHATGPT_PAGE} onSelect={onSelect} />
+      <CommonSubCommandItems page={pages.ASK_CHATGPT_PAGE} onSelect={onSelect} />
     </>
   )
 }
@@ -602,7 +616,7 @@ function TranslateSubCommands({ onSelect }: ItemProps) {
       }} shortcut="↵">
         <span className="truncate">{'Translate full page'}</span>
       </SubItem> */}
-      <CommonSubCommandItems page={TRANSLATE_WITH_PAGE} onSelect={onSelect} />
+      <CommonSubCommandItems page={pages.TRANSLATE_WITH_PAGE} onSelect={onSelect} />
     </>
   )
 }
