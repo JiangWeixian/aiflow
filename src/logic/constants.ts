@@ -19,6 +19,7 @@ export const OPEN_HISTORY = 'open-convenstions-history'
 export const CLEAR_STORAGE = 'clear-storage'
 const PIN_TAB = 'pin-tab'
 const UNPIN_TAB = 'unpin-tab'
+const GROUP_TABS = 'group-tabs'
 export const actions = {
   ASK_CHATGPT_WITH,
   TRANSLATE_WITH,
@@ -27,6 +28,7 @@ export const actions = {
   CLEAR_STORAGE,
   PIN_TAB,
   UNPIN_TAB,
+  GROUP_TABS,
 } as const
 export type ACTIONS = ValueOf<typeof actions>
 

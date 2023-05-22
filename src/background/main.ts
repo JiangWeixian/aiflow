@@ -9,7 +9,7 @@ import {
 import { ChatGPTAPI } from '~/logic/openai'
 import { createMessageStore } from '~/logic/openai/message-store'
 import { systemMessages } from '~/logic/prompts/constants'
-import { formatters } from '~/logic/prompts/utils'
+import { prompters } from '~/logic/prompts/utils'
 import { userConfig } from '~/logic/store/user-config'
 
 import type { Tabs } from 'webextension-polyfill'
@@ -79,17 +79,16 @@ onMessage(channels.ASK_CHATGPT, async (message) => {
     const tabId = tabs[0].id
     const action = data.action
     console.log(action, 'in background', tabs, message)
-    const resolvedTest = await formatters[action]?.(data.text)
+    const resolvedTest = await prompters[action]?.(data.text)
     if (!resolvedTest || !data.text) {
       return {
         message: undefined,
       }
     }
     const { client: chatClient } = await createClient()
-    // NOTE: Not sure previous messages will need more tokens
     const parentMessageId = await store.get(action)
     const resp = await chatClient.sendMessage(resolvedTest, {
-      stream: true,
+      stream: data.stream ?? true,
       systemMessage: systemMessages[action] ?? undefined,
       parentMessageId,
       async onBeforeSendMessage(userMessage) {

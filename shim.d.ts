@@ -10,7 +10,13 @@ declare module 'webext-bridge' {
     'get-current-tab': ProtocolWithReturn<{ tabId: number | string }, { title: string }>
     'test': ProtocolWithReturn<{ value: string }, { message: ChatMessage }>
     // message is ChatMessage typo
-    [channels.ASK_CHATGPT]: ProtocolWithReturn<{ text?: string; action: ACTIONS; message?: any; tabId?: number }, { message: any }>
+    /**
+     * @param action actions typo e.g. TRANSLATE_WITH
+     * @param text finial text sended to chatgpt.
+     * @param stream response chatgpt data in streaming
+     * - @default false
+     */
+    [channels.ASK_CHATGPT]: ProtocolWithReturn<{ text?: string; action: ACTIONS; stream?: boolean; message?: any; tabId?: number }, { message: any }>
     [channels.QUERY_TABS]: ProtocolWithReturn<{ active?: boolean }, { tabs: any }>
     [channels.UPATE_TABS]: ProtocolWithReturn<{ tabId?: number; active?: boolean }, { tab: any; error?: string }>
   }
