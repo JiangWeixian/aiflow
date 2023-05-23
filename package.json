@@ -22,6 +22,7 @@
   },
   "author": "JW <jiangweixian1994@gmail.com> (https://twitter.com/jiangweixian)",
   "scripts": {
+    "test": "vitest",
     "dev": "npm run clear && cross-env NODE_ENV=development run-p dev:*",
     "dev:bg": "tsup --watch ./src",
     "dev:prepare": "esno scripts/prepare.ts",
@@ -60,6 +61,7 @@
     "@react-spring/web": "^9.7.1",
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",
+    "destr": "^1.2.2",
     "document-ready": "^2.0.2",
     "eventsource-parser": "^0.1.0",
     "hookable": "^5.5.3",
@@ -127,6 +129,7 @@
     "unplugin-auto-import": "^0.4.5",
     "vite": "^3.2.4",
     "vite-plugin-svgr": "^2.4.0",
+    "vitest": "^0.31.1",
     "web-ext": "^6.3.0",
     "webext-bridge": "^4.1.1",
     "webextension-polyfill": "^0.8.0"

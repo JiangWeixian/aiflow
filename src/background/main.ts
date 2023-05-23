@@ -9,7 +9,7 @@ import {
 import { ChatGPTAPI } from '~/logic/openai'
 import { createMessageStore } from '~/logic/openai/message-store'
 import { systemMessages } from '~/logic/prompts/constants'
-import { formatters } from '~/logic/prompts/utils'
+import { prompters } from '~/logic/prompts/utils'
 import { userConfig } from '~/logic/store/user-config'
 
 import type { Tabs } from 'webextension-polyfill'
@@ -79,17 +79,16 @@ onMessage(channels.ASK_CHATGPT, async (message) => {
     const tabId = tabs[0].id
     const action = data.action
     console.log(action, 'in background', tabs, message)
-    const resolvedTest = await formatters[action]?.(data.text)
+    const resolvedTest = await prompters[action]?.(data.text)
     if (!resolvedTest || !data.text) {
       return {
         message: undefined,
       }
     }
     const { client: chatClient } = await createClient()
-    // NOTE: Not sure previous messages will need more tokens
     const parentMessageId = await store.get(action)
     const resp = await chatClient.sendMessage(resolvedTest, {
-      stream: true,
+      stream: data.stream ?? true,
       systemMessage: systemMessages[action] ?? undefined,
       parentMessageId,
       async onBeforeSendMessage(userMessage) {
@@ -135,6 +134,25 @@ onMessage(channels.UPATE_TABS, async (message) => {
   } catch (error) {
     console.error(error)
     return { tabs: {}, error: (error as Error).message }
+  }
+})
+
+onMessage(channels.GROUP_TABS, async (message) => {
+  try {
+    const { data } = message
+    const { groups } = data
+    Object.keys(groups).forEach(async (g) => {
+      // refs: https://developer.chrome.com/docs/extensions/reference/tabs/#method-group
+      // @ts-expect-error -- not type safe
+      const groupId = await browser.tabs.group({ tabIds: groups[g].map(item => item.id) })
+      // refs: https://developer.chrome.com/docs/extensions/reference/tabGroups/#method-update
+      // @ts-expect-error -- not type safe
+      await browser.tabGroups.update(groupId, { title: g })
+    })
+    return {}
+  } catch (e) {
+    console.error('GROUP_TABS failed', e)
+    return {}
   }
 })
 

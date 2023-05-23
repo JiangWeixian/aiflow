@@ -1,15 +1,10 @@
 import type { ValueOf } from 'type-fest'
 
-// port id
+// channel id
 export const GET_CURRENT_TAB = 'get-current-tab'
 export const ASK_CHATGPT = 'ask-chatgpt'
 const QUERY_TABS = 'query-tabs'
 const UPATE_TABS = 'update-tabs'
-export const channels = {
-  QUERY_TABS,
-  ASK_CHATGPT,
-  UPATE_TABS,
-} as const
 
 // actions
 export const ASK_CHATGPT_WITH = 'ask-chatgpt-with'
@@ -19,6 +14,7 @@ export const OPEN_HISTORY = 'open-convenstions-history'
 export const CLEAR_STORAGE = 'clear-storage'
 const PIN_TAB = 'pin-tab'
 const UNPIN_TAB = 'unpin-tab'
+const GROUP_TABS = 'group-tabs'
 export const actions = {
   ASK_CHATGPT_WITH,
   TRANSLATE_WITH,
@@ -27,6 +23,7 @@ export const actions = {
   CLEAR_STORAGE,
   PIN_TAB,
   UNPIN_TAB,
+  GROUP_TABS,
 } as const
 export type ACTIONS = ValueOf<typeof actions>
 
@@ -46,6 +43,15 @@ export const pages = {
   SEARCH_TABS_PAGE,
 } as const
 export type PAGES = ValueOf<typeof pages>
+
+// all channels
+export const channels = {
+  QUERY_TABS,
+  ASK_CHATGPT,
+  UPATE_TABS,
+  GROUP_TABS,
+} as const
+
 interface MetaInfo {
   hasChat: boolean
 }

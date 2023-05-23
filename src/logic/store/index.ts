@@ -27,6 +27,7 @@ export const useBearStore = create<BearState>()(
     persist(
       set => ({
         conventions: {},
+        // FIXME: clear parent message id in local storage
         newConvention: async (action) => {
           return set(state => ({
             conventions: {

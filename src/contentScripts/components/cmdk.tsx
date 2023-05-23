@@ -17,9 +17,13 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import { Item, SubItem } from './commands/common/item'
 import { HistoryCommand, HistorySubCommands } from './commands/history'
 import { OptionCommand, OptionSubCommands } from './commands/options'
-import { SearchTabsCommand, SearchTabsSubCommands } from './commands/search-tabs'
 import { StorageCommand, StorageSubCommands } from './commands/storage'
 import { SummaryCommand, SummarySubCommands } from './commands/summary'
+import {
+  GroupTabsCommand,
+  SearchTabsCommand,
+  SearchTabsSubCommands,
+} from './commands/tabs'
 import { SearchTabsPage } from './pages/search-tabs'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ExtraOptionsSelector } from '~/components/select'
@@ -290,6 +294,7 @@ function Home({ onSelect }: ItemProps) {
           Create workflow
         </Item> */}
         <SearchTabsCommand onSelect={onSelect} />
+        <GroupTabsCommand />
         <HistoryCommand />
         <StorageCommand />
         <OptionCommand onSelect={onSelect} />
