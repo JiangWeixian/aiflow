@@ -1,5 +1,6 @@
 import type { ACTIONS, channels } from '~/logic/constants'
 import type { ChatMessage } from '~/logic/openai/types'
+import type { GroupTabsResult } from '~/logic/types'
 import type { ProtocolWithReturn } from 'webext-bridge'
 
 declare module 'webext-bridge' {
@@ -19,5 +20,6 @@ declare module 'webext-bridge' {
     [channels.ASK_CHATGPT]: ProtocolWithReturn<{ text?: string; action: ACTIONS; stream?: boolean; message?: any; tabId?: number }, { message: any }>
     [channels.QUERY_TABS]: ProtocolWithReturn<{ active?: boolean }, { tabs: any }>
     [channels.UPATE_TABS]: ProtocolWithReturn<{ tabId?: number; active?: boolean }, { tab: any; error?: string }>
+    [channels.GROUP_TABS]: ProtocolWithReturn<{ groups: GroupTabsResult }, any>
   }
 }

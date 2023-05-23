@@ -1,10 +1,12 @@
 import destr from 'destr'
 
+import type { GroupTabsResult } from './types'
+
 // Command Tabs
 /**
  * @description The repsonse of Group command
  */
-export const parseGroupResults = (text: string): Record<string, { id: number }[]> => {
+export const parseGroupResults = (text: string): GroupTabsResult => {
   try {
     const result = destr(text)
     return result

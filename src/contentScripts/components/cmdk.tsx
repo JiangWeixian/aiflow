@@ -294,7 +294,7 @@ function Home({ onSelect }: ItemProps) {
           Create workflow
         </Item> */}
         <SearchTabsCommand onSelect={onSelect} />
-        <GroupTabsCommand onSelect={onSelect} />
+        <GroupTabsCommand />
         <HistoryCommand />
         <StorageCommand />
         <OptionCommand onSelect={onSelect} />

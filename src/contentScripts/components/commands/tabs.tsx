@@ -1,5 +1,4 @@
 import { sendMessage } from 'webext-bridge'
-import browser from 'webextension-polyfill'
 
 import { ReactComponent as SearchIcon } from '~/components/icons/search.svg'
 import { Item, SubItem } from '~/contentScripts/components/commands/common/item'
@@ -30,7 +29,7 @@ export function SearchTabsCommand({ onSelect }: ItemProps) {
   )
 }
 
-export function GroupTabsCommand({ onSelect }: ItemProps) {
+export function GroupTabsCommand() {
   const { tabs } = useTabs()
   return (
     <Item
@@ -41,17 +40,13 @@ export function GroupTabsCommand({ onSelect }: ItemProps) {
         const resolvedTabs = tabs?.map(item => ({ id: item.id, title: item.title })) ?? ''
         const text = await prompt(resolvedTabs)
         const response: { message: ChatMessage } = await sendMessage(channels.ASK_CHATGPT, { text, action: actions.GROUP_TABS }, 'background')
-        const result = parseGroupResults(response.message.text)
-        console.debug('grouped tabs', result)
-        const groups = Object.keys(result)
-        const tabIds = result[groups[0]].map(item => item.id)
-        // refs: https://developer.chrome.com/docs/extensions/reference/tabs/#method-group
-        // @ts-expect-error -- not type safe
-        await browser.tabs.group({ tabIds })
+        const groups = parseGroupResults(response.message.text)
+        console.debug('grouped tabs', groups)
+        await sendMessage(channels.GROUP_TABS, { groups }, 'background')
       }}
       value={actions.GROUP_TABS}
     >
-      <SearchIcon />
+      <i className="gg-display-grid/0.75" />
       Group Tabs
     </Item>
   )

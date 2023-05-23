@@ -137,6 +137,25 @@ onMessage(channels.UPATE_TABS, async (message) => {
   }
 })
 
+onMessage(channels.GROUP_TABS, async (message) => {
+  try {
+    const { data } = message
+    const { groups } = data
+    Object.keys(groups).forEach(async (g) => {
+      // refs: https://developer.chrome.com/docs/extensions/reference/tabs/#method-group
+      // @ts-expect-error -- not type safe
+      const groupId = await browser.tabs.group({ tabIds: groups[g].map(item => item.id) })
+      // refs: https://developer.chrome.com/docs/extensions/reference/tabGroups/#method-update
+      // @ts-expect-error -- not type safe
+      await browser.tabGroups.update(groupId, { title: g })
+    })
+    return {}
+  } catch (e) {
+    console.error('GROUP_TABS failed', e)
+    return {}
+  }
+})
+
 // test for webext-bridge is work
 onMessage('test', async (data) => {
   try {
