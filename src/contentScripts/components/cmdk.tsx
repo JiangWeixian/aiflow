@@ -413,7 +413,7 @@ function SubCommand({
   inputRef: React.RefObject<HTMLInputElement>
   listRef: React.RefObject<HTMLElement>
   selectedValue: string
-  page: string
+  page: PAGES
 } & ItemProps) {
   const { subCommandOpen, toggleSubCommand, setSubCommandOpen, isChat } = useCMDKStore()
   const [, setInputValue] = useState<string>()
@@ -500,7 +500,7 @@ function SubCommand({
         >
           <Command.List>
             <Command.Group heading={normalizeSubCommandTitle(selectedValue)?.toUpperCase()}>
-              {isChat && <ChatSubCommands page={selectedValue as Pages} />}
+              {isChat && <ChatSubCommands page={page} />}
               {!isChat && <NonChatSubCommands value={selectedValue} page={page} onSelect={onSelect} />}
             </Command.Group>
           </Command.List>
