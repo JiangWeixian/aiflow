@@ -17,9 +17,13 @@ import { onMessage, sendMessage } from 'webext-bridge'
 import { Item, SubItem } from './commands/common/item'
 import { HistoryCommand, HistorySubCommands } from './commands/history'
 import { OptionCommand, OptionSubCommands } from './commands/options'
-import { SearchTabsCommand, SearchTabsSubCommands } from './commands/search-tabs'
 import { StorageCommand, StorageSubCommands } from './commands/storage'
 import { SummaryCommand, SummarySubCommands } from './commands/summary'
+import {
+  GroupTabsCommand,
+  SearchTabsCommand,
+  SearchTabsSubCommands,
+} from './commands/tabs'
 import { SearchTabsPage } from './pages/search-tabs'
 import { MajesticonsTranslate } from '~/components/icons/translate'
 import { ExtraOptionsSelector } from '~/components/select'
@@ -290,6 +294,7 @@ function Home({ onSelect }: ItemProps) {
           Create workflow
         </Item> */}
         <SearchTabsCommand onSelect={onSelect} />
+        <GroupTabsCommand />
         <HistoryCommand />
         <StorageCommand />
         <OptionCommand onSelect={onSelect} />
@@ -408,7 +413,7 @@ function SubCommand({
   inputRef: React.RefObject<HTMLInputElement>
   listRef: React.RefObject<HTMLElement>
   selectedValue: string
-  page: string
+  page: PAGES
 } & ItemProps) {
   const { subCommandOpen, toggleSubCommand, setSubCommandOpen, isChat } = useCMDKStore()
   const [, setInputValue] = useState<string>()
@@ -495,7 +500,7 @@ function SubCommand({
         >
           <Command.List>
             <Command.Group heading={normalizeSubCommandTitle(selectedValue)?.toUpperCase()}>
-              {isChat && <ChatSubCommands page={selectedValue as Pages} />}
+              {isChat && <ChatSubCommands page={page} />}
               {!isChat && <NonChatSubCommands value={selectedValue} page={page} onSelect={onSelect} />}
             </Command.Group>
           </Command.List>

@@ -23,7 +23,8 @@
     "tabs",
     "storage",
     "notifications",
-    "activeTab"
+    "activeTab",
+    "tabGroups"
   ],
   "host_permissions": [
     "*://*/*"

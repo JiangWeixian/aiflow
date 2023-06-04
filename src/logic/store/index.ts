@@ -4,10 +4,14 @@ import { uniqBy } from 'lodash-es'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
+import { createMessageStore } from '~/logic/openai/message-store'
+
 import type { ChatMessage } from '~/logic/openai/types'
 // import { getConvention } from '~/logic/conventions'
 import type { UserConfig } from '~/logic/store/user-config'
 import type { Tabs } from 'webextension-polyfill'
+
+const store = createMessageStore()
 
 interface BearState {
   /**
@@ -28,6 +32,7 @@ export const useBearStore = create<BearState>()(
       set => ({
         conventions: {},
         newConvention: async (action) => {
+          await store.remove(action)
           return set(state => ({
             conventions: {
               ...state.conventions,
