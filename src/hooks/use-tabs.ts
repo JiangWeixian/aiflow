@@ -3,7 +3,7 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { sendMessage } from 'webext-bridge'
+import { sendMessage } from 'webext-bridge/content-script'
 
 import { channels } from '~/logic/constants'
 import { useUserConfig } from '~/logic/store'

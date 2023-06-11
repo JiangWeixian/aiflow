@@ -1,4 +1,4 @@
-import { onMessage, sendMessage } from 'webext-bridge'
+import { onMessage, sendMessage } from 'webext-bridge/background'
 import browser from 'webextension-polyfill'
 
 import {

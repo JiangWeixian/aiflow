@@ -12,7 +12,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { onMessage, sendMessage } from 'webext-bridge'
+import { onMessage, sendMessage } from 'webext-bridge/content-script'
 
 import { Item, SubItem } from './commands/common/item'
 import { HistoryCommand, HistorySubCommands } from './commands/history'
