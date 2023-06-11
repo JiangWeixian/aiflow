@@ -1,4 +1,4 @@
-import { sendMessage } from 'webext-bridge'
+import { sendMessage } from 'webext-bridge/content-script'
 
 import { ReactComponent as SearchIcon } from '~/components/icons/search.svg'
 import { Item, SubItem } from '~/contentScripts/components/commands/common/item'

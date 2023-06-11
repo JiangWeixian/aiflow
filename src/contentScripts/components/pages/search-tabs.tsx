@@ -1,5 +1,5 @@
 import { Command } from 'cmdk'
-import { sendMessage } from 'webext-bridge'
+import { sendMessage } from 'webext-bridge/content-script'
 
 import { Item } from '~/contentScripts/components/commands/common/item'
 import { useTabs } from '~/hooks/use-tabs'
